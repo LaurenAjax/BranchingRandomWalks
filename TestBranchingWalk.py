@@ -18,6 +18,7 @@ root = Node(None, x, y)
 def brancher(prev_node, count):
     if (count == steps):
         plot.plot(prev_node.x_coord, prev_node.y_coord, color='k')
+        plot.plot(prev_node.x_coord[count - 1], prev_node.y_coord[count - 1], 'o', color='r')
         return None
     else:
         x_cur = copy.deepcopy(prev_node.x_coord)
