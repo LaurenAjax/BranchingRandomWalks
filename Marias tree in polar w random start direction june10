@@ -1,0 +1,115 @@
+import random
+import matplotlib.pyplot as plt
+
+
+num_gen = 4
+num_children = 2
+
+# Data structure: list of (x, y, parent_x, parent_y)
+nodes = [(0, 0, None, None)]  # ancestor agent at (0, 0)
+gen = [(0, 0)]         # initial generation
+
+dir1 = random.randint(0,360) #random initial direction 
+x_counter = dir1  # to assign degree positions
+
+
+# Generate tree
+for t in range(1, num_gen+1):
+  next_gen = [] # create an empty list for the offspring of each agent in the current generation for #_gen times.
+
+  for parent_x, parent_y in gen:
+     # loop through each agent in the current generation
+     for _ in (1, num_children):
+      direction = random.randint(1, 2)
+      if direction == 1:
+          x_counter += 5
+          child_x = x_counter
+          child_y = t
+          nodes.append((child_x, child_y, parent_x, parent_y))
+          next_gen.append((child_x, child_y))
+      if direction == 2:
+         x_counter -= 5
+         child_x = x_counter
+         child_y = t
+         nodes.append((child_x, child_y, parent_x, parent_y))
+         next_gen.append((child_x, child_y))
+
+  gen = next_gen
+
+for x, y, parent_x, parent_y in nodes:
+  if parent_x is not None:
+    plt.polar([np.deg2rad(parent_x), np.deg2rad(x)], [parent_y, y], color='blue', lw=1)
+
+for x,y, _, _ in nodes:
+  plt.polar(np.deg2rad(x),y)
+
+
+
+nodes2 = [(0, 0, None, None)]  # ancestor agent at (0, 0)
+gen2 = [(0, 0)]         # initial generation
+dir2 = random.randint(0,360)
+
+x_counter2 = dir2  # to assign horizontal positions
+
+
+# Generate tree 
+for t in range(1, num_gen+1): 
+  next_gen2 = [] # create an empty list for the offspring of each agent in the current generation for #_gen times.
+
+  for parent_x2, parent_y2 in gen2:
+     # loop through each agent in the current generation
+     for _ in (1, num_children):
+      direction = random.randint(1, 2)
+      if direction == 1:
+          x_counter2 += 5
+          child_x2 = x_counter2
+          child_y2 = t
+          nodes2.append((child_x2, child_y2, parent_x2, parent_y2))
+          next_gen2.append((child_x2, child_y2))
+      if direction == 2:
+         x_counter2 -= 5
+         child_x2 = x_counter2
+         child_y2 = t
+         nodes2.append((child_x2, child_y2, parent_x2, parent_y2))
+         next_gen2.append((child_x2, child_y2))
+
+  gen2 = next_gen2
+
+for x, y, parent_x2, parent_y2 in nodes2:
+  if parent_x2 is not None:
+    plt.polar([np.deg2rad(parent_x2), np.deg2rad(x)], [parent_y2, y], color='red', lw=1)
+
+
+nodes3 = [(0, 0, None, None)]  # ancestor agent at (0, 0)
+gen3 = [(0, 0)]         # initial generation
+dir3 = random.randint(0,360)
+
+x_counter3 = dir3  # to assign horizontal positions
+
+
+# Generate tree 
+for t in range(1, num_gen+1): 
+  next_gen3 = [] # create an empty list for the offspring of each agent in the current generation for #_gen times.
+
+  for parent_x3, parent_y3 in gen3:
+     # loop through each agent in the current generation
+     for _ in (1, num_children):
+      direction = random.randint(1, 2)
+      if direction == 1:
+          x_counter3 += 5
+          child_x3 = x_counter3
+          child_y3 = t
+          nodes3.append((child_x3, child_y3, parent_x3, parent_y3))
+          next_gen3.append((child_x3, child_y3))
+      if direction == 2:
+         x_counter3 -= 5
+         child_x3 = x_counter3
+         child_y3 = t
+         nodes3.append((child_x3, child_y3, parent_x3, parent_y3))
+         next_gen3.append((child_x3, child_y3))
+
+  gen3 = next_gen3
+
+for x, y, parent_x3, parent_y3 in nodes3:
+  if parent_x3 is not None:
+    plt.polar([np.deg2rad(parent_x3), np.deg2rad(x)], [parent_y3, y], color='green', lw=1)
