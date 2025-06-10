@@ -1,0 +1,46 @@
+import random
+import matplotlib.pyplot as plot
+
+num_gen = 10
+num_children = 2
+
+
+initial_path = [(0, 0)]
+current_gen = [initial_path]  # list of agent paths
+
+
+for t in range(num_gen):
+    next_gen = []
+
+    for path in current_gen:
+        x, y = path[-1]  # last position of current agent
+
+        for _ in range(num_children):
+            # Random step
+            direction = random.randint(1, 4)
+            if direction == 1: # up
+                child = (x, y + 1)
+            elif direction == 2: # right
+                child = (x + 1, y)
+            elif direction == 3: # down
+                child = (x, y - 1)
+            else: # left
+                child = (x - 1, y)
+
+            # Create new path for child: parent's path + new step
+            child_path = path + [child]
+            next_gen.append(child_path)
+
+    current_gen = next_gen  # move to next generation
+
+
+for path in current_gen:
+    x_vals = [pos[0] for pos in path]
+    y_vals = [pos[1] for pos in path]
+    plot.plot(x_vals, y_vals, lw=1.5)
+
+plot.title("Branching Random Walk")
+plot.xlabel("x")
+plot.ylabel("y")
+plot.grid(True)
+plot.show()
