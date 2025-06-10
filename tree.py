@@ -1,6 +1,7 @@
 import math
 import random
 import matplotlib.pyplot as plot
+import matplotlib.colors as color
 
 class node:
     loc = [0, 0]
@@ -42,13 +43,14 @@ class node:
     def plot_path(self, arr):
         arr[0].append(self.loc[0])
         arr[1].append(self.loc[1])
-        if self.children != []:
-            plot.plot(arr[0], arr[1], color=(random.random(),random.random(),random.random()))
         for child in self.children:
             child.plot_path(arr)
-        arr[0].pop()
-        arr[1].pop()
-        
+        if self.children == []:
+            plot.plot(arr[0], arr[1], color=(random.random(),random.random(),random.random()))
+            plot.plot([arr[0].pop()], [arr[1].pop()], 'o', color=(random.random(),random.random(),random.random()))
+        else:
+            arr[0].pop()
+            arr[1].pop()
 
 root = node([0,0], 0)
 print("Running")
