@@ -20,7 +20,7 @@ class node:
         delta = [val%2*pow(-1,math.floor(val/2)), (val+1)%2*pow(-1,math.floor(val/2))]
         for i in range(2):
             self.loc[i] += delta[i]
-        print("(",self.loc[0],", ",self.loc[1],")")
+        # print("(",self.loc[0],", ",self.loc[1],")")
     def wander(self,num):
         if num == 1:
             self.wander_me()
@@ -53,10 +53,10 @@ class node:
             arr[1].pop()
 
 root = node([0,0], 0)
-print("Running")
+# print("Running")
 for i in range(10):
-    print("Running with i =",i)
+    # print("Running with i =",i)
     root.propogate(i)
 root.plot_path([[],[]])
 plot.show()
-print("Terminating")
+# print("Terminating")
