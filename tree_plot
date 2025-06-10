@@ -1,0 +1,39 @@
+import random
+import matplotlib.pyplot as plot
+
+
+num_gen = 3
+num_children = 2
+
+# Data structure: list of (x, y, parent_x, parent_y)
+nodes = [(0, 0, None, None)]  # ancestor agent at (0, 0)
+gen = [(0, 0)]         # initial generation
+
+x_counter = 0  # to assign horizontal positions
+
+
+# Generate tree 
+for t in range(1, num_gen+1): 
+  next_gen = [] # create an empty list for the offspring of each agent in the current generation for #_gen times.
+
+  for parent_x, parent_y in gen:
+     # loop through each agent in the current generation
+     for _ in (1, num_children):
+      x_counter += 1
+      child_x = x_counter
+      child_y = -t
+      nodes.append((child_x, child_y, parent_x, parent_y))
+      next_gen.append((child_x, child_y))
+
+  gen = next_gen
+
+
+for x, y, parent_x, parent_y in nodes:
+  if parent_x is not None:
+    plot.plot([parent_x, x], [parent_y, y], color='black', lw=1)
+
+for x,y, _, _ in nodes:
+  plot.scatter(x,y)
+
+plot.grid("true")
+plt.gca().invert_yaxis()
