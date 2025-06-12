@@ -116,8 +116,8 @@ for i in range(10):
 plot.axis([-10, 10, -10, 10])
 plot.grid(True)
 ticks = []
-for i in range(21):
-    ticks.append(i-10)
+for i in range(3):
+    ticks.append(10*i-10)
 plot.xticks(ticks)
 plot.yticks(ticks)
 root.gen_dist(10)
