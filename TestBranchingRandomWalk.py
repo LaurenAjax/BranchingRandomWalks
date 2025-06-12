@@ -17,8 +17,8 @@ root = Node(None, x, y, random.randint(0, 2))
 
 def brancher(prev_node):
     if (prev_node.num_kids == 0):
-        plot.plot(prev_node.x_coord, prev_node.y_coord, color='k')
-        plot.plot(prev_node.x_coord[len(prev_node.x_coord) - 1], prev_node.y_coord[len(prev_node.y_coord) - 1], 'o', color='r')
+        plot.plot(prev_node.x_coord, prev_node.y_coord, color=(random.random(),random.random(),random.random()))
+        plot.plot(prev_node.x_coord[len(prev_node.x_coord) - 1], prev_node.y_coord[len(prev_node.y_coord) - 1], 'o', color='k')
         return None
     else:
         x_cur = copy.deepcopy(prev_node.x_coord)
