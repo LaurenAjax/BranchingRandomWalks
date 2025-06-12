@@ -86,16 +86,16 @@ class node:
             arr[0].pop()
             arr[1].pop()
     
-    def gen_dist_helper(self, aac):
-        if self.children == []:
+    def gen_dist_helper(self, aac, num):
+        if num == 0:
             aac.increment(self.loc)
         else:
             for child in self.children:
-                child.gen_dist_helper(aac)
+                child.gen_dist_helper(aac, num - 1)
 
-    def gen_dist(self):
+    def gen_dist(self, num):
         arr = AAC()
-        self.gen_dist_helper(arr)
+        self.gen_dist_helper(arr, num)
         keys = arr.get_keys()
         max = arr.get_max_val()
         xArr = []
@@ -120,6 +120,6 @@ for i in range(21):
     ticks.append(i-10)
 plot.xticks(ticks)
 plot.yticks(ticks)
-root.gen_dist()
+root.gen_dist(10)
 plot.show()
 # print("Terminating")
