@@ -12,11 +12,15 @@ class Node:
         self.next = []
         self.gen = gen
 
-root = Node(None, 0, 0, random.randint(0, 3), 0)
+root = Node(None, 0, 0, random.randint(0, 5), 0)
 lst = [root]
 count = 0
 
 while count < len(lst):
+    prev_r = lst[count].r_coord
+    prev_theta = lst[count].theta_coord
+    prev_x = prev_r * math.cos(prev_theta)
+    prev_y = prev_r * math.sin(prev_theta)
     for i in range(lst[count].num_kids):
         random_value = random.randint(1, 22)
         if random_value < 8:
@@ -27,10 +31,6 @@ while count < len(lst):
             angle = math.radians(random.randint(230, 250))
         else:
             angle = math.radians(random.randint(1, 360))
-        prev_r = lst[count].r_coord
-        prev_theta = lst[count].theta_coord
-        prev_x = prev_r * math.cos(prev_theta)
-        prev_y = prev_r * math.sin(prev_theta)
         cur_x = prev_x + math.cos(angle)
         cur_y = prev_y + math.sin(angle)
         cur_r = math.sqrt(cur_x**2 + cur_y**2)
@@ -39,7 +39,7 @@ while count < len(lst):
         if cur_gen == 10:
             cur_node = Node(lst[count], cur_theta, cur_r, 0, cur_gen)
         else:
-            cur_node = Node(lst[count], cur_theta, cur_r, random.randint(0, 3), cur_gen)
+            cur_node = Node(lst[count], cur_theta, cur_r, random.randint(0, 5), cur_gen)
         lst[count].next.append(cur_node)
         lst.append(cur_node)
     count += 1
