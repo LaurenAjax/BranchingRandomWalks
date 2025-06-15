@@ -17,6 +17,7 @@ lst = [root]
 count = 0
 
 while count < len(lst):
+    cur_gen = lst[count].gen + 1
     prev_r = lst[count].r_coord
     prev_theta = lst[count].theta_coord
     prev_x = prev_r * math.cos(prev_theta)
@@ -35,7 +36,6 @@ while count < len(lst):
         cur_y = prev_y + math.sin(angle)
         cur_r = math.sqrt(cur_x**2 + cur_y**2)
         cur_theta = math.atan2(cur_y, cur_x)
-        cur_gen = lst[count].gen + 1
         if cur_gen == 10:
             cur_node = Node(lst[count], cur_theta, cur_r, 0, cur_gen)
         else:
