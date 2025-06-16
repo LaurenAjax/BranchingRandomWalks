@@ -12,7 +12,7 @@ class Node:
         self.next = []
         self.gen = gen
 
-root = Node(None, 0, 0, random.randint(0, 5), 0)
+root = Node(None, 0, 0, random.randint(0, 10), 0)
 lst = [root]
 count = 0
 
@@ -39,7 +39,7 @@ while count < len(lst):
         if cur_gen == 10:
             cur_node = Node(lst[count], cur_theta, cur_r, 0, cur_gen)
         else:
-            cur_node = Node(lst[count], cur_theta, cur_r, random.randint(0, 5), cur_gen)
+            cur_node = Node(lst[count], cur_theta, cur_r, random.randint(0, 4), cur_gen)
         lst[count].next.append(cur_node)
         lst.append(cur_node)
     count += 1
@@ -47,6 +47,6 @@ while count < len(lst):
 for node in lst:
     plot.polar(node.theta_coord, node.r_coord, 'o', color=(0, 0, 0, 0.1))
     for kid in node.next:
-        plot.polar([node.theta_coord, kid.theta_coord], [node.r_coord, kid.r_coord], color=(1, 0, 0, 0.1))
+        plot.polar([node.theta_coord, kid.theta_coord], [node.r_coord, kid.r_coord], color=(random.random(), random.random(), random.random(), 0.5))
 
 plot.show()

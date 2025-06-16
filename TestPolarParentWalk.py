@@ -53,6 +53,6 @@ while count < len(lst):
 for node in lst:
     plot.polar(node.theta_coord, node.r_coord, 'o', color=(0, 0, 0, 0.1))
     for kid in node.next:
-        plot.polar([node.theta_coord, kid.theta_coord], [node.r_coord, kid.r_coord], color=(1, 0, 0, 0.1))
+        plot.polar([node.theta_coord, kid.theta_coord], [node.r_coord, kid.r_coord], color=(random.random(), random.random(), random.random(), 0.5))
 
 plot.show()
