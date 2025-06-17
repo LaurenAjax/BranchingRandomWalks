@@ -1,3 +1,4 @@
+import numpy as np
 import random
 import matplotlib.pyplot as plt
 
@@ -9,7 +10,7 @@ num_children = 2
 nodes = [(0, 0, None, None)]  # ancestor agent at (0, 0)
 gen = [(0, 0)]         # initial generation
 
-dir1 = random.randint(0,360) #random initial direction 
+dir1 = random.randint(1,360) #random initial direction 
 x_counter = dir1  # to assign degree positions
 
 
@@ -113,3 +114,5 @@ for t in range(1, num_gen+1):
 for x, y, parent_x3, parent_y3 in nodes3:
   if parent_x3 is not None:
     plt.polar([np.deg2rad(parent_x3), np.deg2rad(x)], [parent_y3, y], color='green', lw=1)
+
+plt.show()
