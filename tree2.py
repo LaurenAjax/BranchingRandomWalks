@@ -39,11 +39,10 @@ class node:
     mirror_var = 0
     self_var = 0
     fineness = 1
+    generation = 1
     
-    def __init__(self, pos, par, theta, phi, sigma, pmth, pmself, fin):
+    def __init__(self, pos, par, theta, phi, sigma, delta, rho, fin, gen):
         self.loc = pos.copy()
-        # for val in pos:
-        #     loc.append(val + 0)
         self.children = []
         self.parent = par
         self.fineness = fin
@@ -51,20 +50,20 @@ class node:
         if self.parent == None:
             self.dir = theta * 2 * math.pi / 360
             self.dir_var = sigma * self.fineness
-            self.mirror_var = pmth * self.fineness
-            self.self_var = pmself * self.fineness
+            self.mirror_var = delta * self.fineness
+            self.self_var = rho * self.fineness
         else:
             self.dir = theta
             self.dir_var = sigma
-            self.mirror_var = pmth
-            self.self_var = pmself
-
+            self.mirror_var = delta
+            self.self_var = rho
+        self.generation = gen
         
     def add_child(self, child):
         self.children.append(child)
         
     def wander_me(self, thetaA, thetaB):
-        thetaC = random.randint(-self.self_var, self.self_var) * 2 / self.fineness * math.pi / 360
+        thetaC = random.randint(-self.self_var - self.generation, self.self_var + self.generation) * 2 / self.fineness * math.pi / 360
         self.dir += thetaA + thetaB + thetaC
         delta = [math.cos(self.dir), math.sin(self.dir)]
         for i in range(2):
@@ -75,8 +74,8 @@ class node:
         if num == 1:
             self.wander_me(0, 0)
         if num == 2:
-            thetaA = random.randint(-self.dir_var, self.dir_var) * 2 / self.fineness * math.pi / 360 
-            thetaB = random.randint(-self.mirror_var, self.mirror_var) * 2 / self.fineness * math.pi / 360
+            thetaA = random.randint(-self.dir_var - self.generation, self.dir_var + self.generation) * 2 / self.fineness * math.pi / 360 
+            thetaB = random.randint(-self.mirror_var - self.generation, self.mirror_var + self.generation) * 2 / self.fineness * math.pi / 360
             for i in range(len(self.children)):
                 self.children[i].wander_me(thetaA*pow(-1,i),thetaB)
         else:
@@ -85,7 +84,7 @@ class node:
     
     def propogate_me(self):
         for i in range(2):
-            self.add_child(node(self.loc, self, self.dir + self.dif*math.pow(-1,i) * 2 * math.pi / 360, self.dif, self.dir_var, self.mirror_var, self.self_var, self.fineness))
+            self.add_child(node(self.loc, self, self.dir + self.dif*math.pow(-1,i) * 2 * math.pi / 360, self.dif, self.dir_var, self.mirror_var, self.self_var, self.fineness, self.generation + 1))
     
     def propogate(self, num):
         if num == 0:
@@ -103,8 +102,8 @@ class node:
         for child in self.children:
             child.plot_path(arr)
         if self.children == []:
-            plot.plot(arr[0], arr[1], color=(random.random(),random.random(),random.random(),.1))
-            plot.plot([arr[0].pop()], [arr[1].pop()], 'o', color=(random.random(),random.random(),random.random(),.1))
+            plot.plot(arr[0], arr[1], color=(random.random(),random.random(),random.random(),1))
+            plot.plot([arr[0].pop()], [arr[1].pop()], 'o', color=(random.random(),random.random(),random.random(),1))
         else:
             arr[0].pop()
             arr[1].pop()
@@ -131,12 +130,18 @@ class node:
         plot.scatter(xArr, yArr, c=cArr)
         print(max)
 
-root = node([0,0], None, 90, 27, 9, 3, 1, 4)
+root = node([0,0], None, 0, 16, 8, 4, 2, 1, 1)
+# rootA = node([0,0], None, 90, 16, 8, 4, 2, 1, 1)
+# rootB = node([0,0], None, 180, 16, 8, 4, 2, 1, 1)
+# rootC = node([0,0], None, 270, 16, 8, 4, 2, 1, 1)
 # print("Running")
 gen = 10
 for i in range(gen):
     # print("Running with i =",i)
     root.propogate(i)
+    # rootA.propogate(i)
+    # rootB.propogate(i)
+    # rootC.propogate(i)
 
 plot.axis([-gen, gen, -gen, gen])
 plot.grid(True)
@@ -147,6 +152,9 @@ plot.xticks(ticks)
 plot.yticks(ticks)
 
 root.plot_path([[],[]])
+# rootA.plot_path([[],[]])
+# rootB.plot_path([[],[]])
+# rootC.plot_path([[],[]])
 # root.gen_dist(gen)
 plot.show()
 # print("Terminating")
