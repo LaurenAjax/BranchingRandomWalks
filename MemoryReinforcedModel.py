@@ -49,10 +49,10 @@ while count < len(lst):
         # assigns a value to the first kid of a parent who has a parent
             for j in range(lst[count].parent.num_kids):
                 if lst[count].parent.next[j] is lst[count]:
-                    angle = math.radians(random.randint(int(360 / lst[count].parent.num_kids) * j - 10, int(360 / lst[count].parent.num_kids) * j + 10))
+                    angle = math.radians(random.randint(int(360 / lst[count].parent.num_kids) * j - 5, int(360 / lst[count].parent.num_kids) * j + 5))
                     # makes the cousins equidistant from each other (for maximum repulsion) according to parent birth order
         else:
-            angle = math.radians(random.randint(int(math.degrees(lst[count].next[0].angle)) - 10, int(math.degrees(lst[count].next[0].angle)) + 10))
+            angle = math.radians(random.randint(int(math.degrees(lst[count].next[0].angle)) - 5, int(math.degrees(lst[count].next[0].angle)) + 5))
             # keeps the siblings close to their eldest
         steps = random.randint(1, 5)
         # the number of steps the kid node moves before having kids
