@@ -1,7 +1,6 @@
 import math
 import random
 import matplotlib.pyplot as plt
-#calculate and store the distance of each agent in a node, or use a counter to represent each agent
 
 # Initialize the list of all paths; start with one agent at origin
 # Each path is a list of (x, y) positions showing the full trajectory of an agent
@@ -60,7 +59,7 @@ for path in paths:
     x_coord = [p[0] for p in path]
     y_coord = [p[1] for p in path]
 
-    # Assign a random color (with transparency)
+    # Assign a random color
     r, g, b = random.random(), random.random(), random.random()
     plt.plot(x_coord, y_coord, color=(r, g, b, 0.1)) 
     plt.plot(x_coord[-1], y_coord[-1], 'o', color=(r, g, b, 0.1), markersize=4)
