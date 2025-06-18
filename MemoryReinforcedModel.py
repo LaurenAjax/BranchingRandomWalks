@@ -7,6 +7,7 @@ class Node:
         self.parent = parent
         # this node's parent node
         self.angle = angle
+        # this node's angle from it's parent (in radians)
         self.theta_coord = theta_coord
         # the degree at which this node's point is angled from the origin (in radians)
         self.r_coord = r_coord
