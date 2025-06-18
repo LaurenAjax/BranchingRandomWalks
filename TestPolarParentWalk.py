@@ -72,7 +72,7 @@ while count < len(lst):
         # produces the angle the kid node has from the origin
         if cur_gen == 10:
             cur_node = Node(lst[count], cur_theta, cur_r, 0, cur_gen)
-            # prevents further kids from being had after the tenth generation
+            # prevents further kids from being born after the tenth generation
         else:
             cur_node = Node(lst[count], cur_theta, cur_r, random.randint(0, 4), cur_gen)
             # forms the kid node that will have a random number of kids in turn
