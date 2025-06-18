@@ -3,9 +3,10 @@ import random
 import math
 
 class Node:
-    def __init__(self, parent, theta_coord, r_coord, num_kids, steps, gen):
+    def __init__(self, parent, angle, theta_coord, r_coord, num_kids, steps, gen):
         self.parent = parent
         # this node's parent node
+        self.angle = angle
         self.theta_coord = theta_coord
         # the degree at which this node's point is angled from the origin (in radians)
         self.r_coord = r_coord
@@ -19,7 +20,7 @@ class Node:
         self.gen = gen
         # the number of nodes away from the starting node this node is
 
-root = Node(None, 0, 0, random.randint(1, 10), random.randint(1, 5), 0)
+root = Node(None, 0, 0, 0, random.randint(1, 10), random.randint(1, 5), 0)
 # the starting node from which all subsequent nodes are generated
 lst = [root]
 # a list containing all nodes that make up the tree
@@ -51,26 +52,26 @@ while count < len(lst):
                     angle = math.radians(random.randint(int(360 / lst[count].parent.num_kids) * j - 10, int(360 / lst[count].parent.num_kids) * j + 10))
                     # makes the cousins equidistant from each other (for maximum repulsion) according to parent birth order
         else:
-            angle = math.radians(random.randint(int(math.degrees(lst[count].next[0].theta_coord)) - 10, int(math.degrees(lst[count].next[0].theta_coord)) + 10))
+            angle = math.radians(random.randint(int(math.degrees(lst[count].next[0].angle)) - 10, int(math.degrees(lst[count].next[0].angle)) + 10))
             # keeps the siblings close to their eldest
-        num_steps = random.randint(1, 5)
+        steps = random.randint(1, 5)
         # the number of steps the kid node moves before having kids
-        cur_x = prev_x + num_steps * math.cos(angle)
+        cur_x = prev_x + steps * math.cos(angle)
         # produces the x-coordinate of the kid node
-        cur_y = prev_y + num_steps * math.sin(angle)
+        cur_y = prev_y + steps * math.sin(angle)
         # produces the y-coordinate of the kid node
         cur_r = math.sqrt(cur_x**2 + cur_y**2)
         # produces the distance from the origin to the kid node
         cur_theta = math.atan2(cur_y, cur_x)
         # produces the angle the kid node has from the origin
         if cur_gen == 3:
-            cur_node = Node(lst[count], cur_theta, cur_r, 0, num_steps, cur_gen)
+            cur_node = Node(lst[count], angle, cur_theta, cur_r, 0, steps, cur_gen)
             # prevents further kids from being born after the third generation
         elif cur_r > 5:
-            cur_node = Node(lst[count], cur_theta, cur_r, 2, num_steps, cur_gen)
+            cur_node = Node(lst[count], angle, cur_theta, cur_r, 2, steps, cur_gen)
             # has exactly two kids when greater than distance 5 away from the origin
         else:
-            cur_node = Node(lst[count], cur_theta, cur_r, random.randint(1, 10), num_steps, cur_gen)
+            cur_node = Node(lst[count], angle, cur_theta, cur_r, random.randint(1, 10), steps, cur_gen)
             # has in between one and ten kids when distance 5 or less from the origin
         lst[count].next.append(cur_node)
         # adds the kid node to the parent node's array of kids
