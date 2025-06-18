@@ -1,0 +1,70 @@
+import math
+import random
+import matplotlib.pyplot as plt
+#calculate and store the distance of each agent in a node, or use a counter to represent each agent
+
+# Initialize the list of all paths; start with one agent at origin
+# Each path is a list of (x, y) positions showing the full trajectory of an agent
+paths = [[(0.0, 0.0)]]
+
+num_gen = 10               # number of generations (depth of tree)
+step_size = 1             # distance each agent moves per step
+initial_angle = math.pi / 2   # initial direction: straight upward (90 deg)
+angle_spread = math.pi / 6    # maximum divergence from parent's direction (30 deg)
+num_children = 2
+
+# Loop through each generation
+for gen in range(num_gen):
+    new_paths = []  # list to store the new generation of paths
+
+    for path in paths:
+        # path[-1]: Get the last location of the current agent
+        last_x, last_y = path[-1]
+
+        if gen == 0:
+            # Root agent: assign default angle
+            angle = initial_angle
+        else:
+            # Calculate direction from previous step
+            dx = last_x - path[-2][0] # [0] is the x_coord
+            dy = last_y - path[-2][1] # [1] is the y_coord
+            angle = math.atan2(dy, dx)
+
+        # Create 2 children with mirrored and slightly randomized directions
+        for i in range(num_children):
+            # one left, one right (the symmetric part)
+            delta = angle_spread * (-1 if i == 0 else 1)
+
+            # Small random theta so it's not perfectly symmetrical/uniform
+            theta = random.uniform(-0.1,0.1)
+
+            # New direction for this child (symmetric but not uniform)
+            new_angle = angle + delta + theta
+
+            # Compute new position based on direction and step size
+            new_x = last_x + step_size * math.cos(new_angle)
+            new_y = last_y + step_size * math.sin(new_angle)
+
+            # Create a new path (copy of parent + new position)
+            new_path = path + [(new_x, new_y)]
+
+            # Add this new path to the next generation
+            new_paths.append(new_path)
+
+    # Move to the next generation
+    paths = new_paths
+
+
+for path in paths:
+    # Extract x and y coordinates
+    x_coord = [p[0] for p in path]
+    y_coord = [p[1] for p in path]
+
+    # Assign a random color (with transparency)
+    r, g, b = random.random(), random.random(), random.random()
+    plt.plot(x_coord, y_coord, color=(r, g, b, 0.1)) 
+    plt.plot(x_coord[-1], y_coord[-1], 'o', color=(r, g, b, 0.1), markersize=4)
+
+
+plt.grid()
+plt.show()
