@@ -3,7 +3,6 @@ import random
 import matplotlib.pyplot as plot
 import matplotlib.colors as color
 import functools as ft
-import copy
 
 def to_unit(arr):
     scale = 0
@@ -52,7 +51,7 @@ class Node:
         
     def calcTruePos(self):
         for i in range(2):
-            self.true_pos[i] = self.init_pos[i] + self.delta_pos[i] * self.step_len
+            self.true_pos[i] = self.init_pos[i] + self.delta_pos[i] * self.step_len * random.randint(1,3) / 2
     
     def relation_movement(self):
         cousin_arr = []
@@ -72,8 +71,12 @@ class Node:
                 for sibling in self.parent.children:
                     if sibling is not self:
                         sibling_arr.append(sibling)
-            sibling_pull = to_unit(ft.reduce(lambda x, y: [x[0] + y[0], x[1] + y[1]], map(lambda x: scale_arr(arr_dif(self.true_pos, x.true_pos), -pow(self.inv_dist_to(x.true_pos), 2)), sibling_arr), [0, 0]))
-            cousin_push = to_unit(ft.reduce(lambda x, y: [x[0] + y[0], x[1] + y[1]], map(lambda x: scale_arr(arr_dif(self.true_pos, x.true_pos), pow(self.inv_dist_to(x.true_pos), 2)), cousin_arr), [0, 0]))
+            # sibling_pull = ft.reduce(lambda x, y: [x[0] + y[0], x[1] + y[1]], map(lambda x: scale_arr(arr_dif(x.true_pos, self.true_pos), pow(self.dist_to(x.true_pos), 2)), sibling_arr), [0, 0])
+            # cousin_push = ft.reduce(lambda x, y: [x[0] + y[0], x[1] + y[1]], map(lambda x: scale_arr(arr_dif(x.true_pos, self.true_pos), pow(self.dist_to(x.true_pos), 2)), cousin_arr), [0, 0])
+            sibling_pull = ft.reduce(lambda x, y: [x[0] + y[0], x[1] + y[1]], map(lambda x: arr_dif(x.true_pos, self.true_pos), sibling_arr), [0, 0])
+            cousin_push = ft.reduce(lambda x, y: [x[0] + y[0], x[1] + y[1]], map(lambda x: arr_dif(x.true_pos, self.true_pos), cousin_arr), [0, 0])
+            sibling_pull = to_unit(sibling_pull)
+            cousin_push = to_unit(cousin_push)
             for i in range(2):
                 self.delta_pos[i] = self.delta_pos[i] * self.weights[0] + sibling_pull[i] * self.weights[1] + cousin_push[i] * self.weights[2]
             self.delta_pos = to_unit(self.delta_pos)
@@ -89,7 +92,7 @@ class Node:
     
     def new_gen(self):
         if self.dist_to([0, 0]) < 5:
-            count = random.randint(1, 10)
+            count = random.randint(1, 5)
         else:
             count = 2
         for i in range(count):
@@ -113,9 +116,10 @@ class Node:
     
     def run_gens(self, num, **kwargs):
         low = kwargs.get('last', 0)
-        for i in range(low,num):
-            print("Running gen i =",i)
+        for i in range(low, num):
+            print("Running gen", i+1, "/", num)
             self.propogate(i)
+        print("Generation finished")
             
     def plot_path_helper(self, arr):
         arr[0].append(self.true_pos[0])
@@ -133,30 +137,30 @@ class Node:
         self.plot_path_helper([[], []])
 
 
-step_length = 2
-root = Node([0, 0], [0, 0], None, step_length, [1, .125, .125])
-gen = 10
-root.run_gens(gen)
-plot.axis([-gen * step_length, gen * step_length, -gen * step_length, gen * step_length])
+step_length = 1
+root = Node([0, 0], [0, 0], None, step_length, [1, 1, -1])
+gens = 10
+root.run_gens(gens)
+plot.axis([-gens * step_length, gens * step_length, -gens * step_length, gens * step_length])
 plot.grid(True)
 ticks = []
 for i in range(2 * step_length + 1):
-    ticks.append(gen * i - gen * step_length)
+    ticks.append(gens * i * 1.5 - gens * step_length * 1.5)
 plot.xticks(ticks)
 plot.yticks(ticks)
 root.plot_path()
 granularity = 360
-for j in range(1, 10 * step_length + 1):
-    circ_path = [[],[]]
+for j in range(1, math.ceil(gens * step_length * 1.5 + 1)):
+    circ_path = [[], []]
     for i in range(granularity):
-        circ_path[0].append(j*math.cos(math.radians(360*i/granularity)))
-        circ_path[1].append(j*math.sin(math.radians(360*i/granularity)))
+        circ_path[0].append(j * math.cos(math.radians(360 * i / granularity)))
+        circ_path[1].append(j * math.sin(math.radians(360 * i / granularity)))
     circ_path[0].append(j)
     circ_path[1].append(0)
     if j % 5 == 0:
-        plot.plot(circ_path[0], circ_path[1], color=(0, 1, 0, 1))
+        plot.plot(circ_path[0], circ_path[1], color = (0, 1, 0, 1))
     else:
-        plot.plot(circ_path[0], circ_path[1], color=(0, 0, 1, 1))
-
+        plot.plot(circ_path[0], circ_path[1], color = (0, 0, 1, 1))
+plot.plot([0], [0], 'o', color = (0, 1, 0, 1))
 
 plot.show()
