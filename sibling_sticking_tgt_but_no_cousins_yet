@@ -61,7 +61,6 @@ for gen in range(num_gen):
     paths = new_paths
     id_info = new_id_info
 
-# Plot all paths
 for path in paths:
     # Extract x and y coordinates
     x_coord = [p[0] for p in path]
