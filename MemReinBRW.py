@@ -1,0 +1,148 @@
+import math
+import random
+import matplotlib.pyplot as plot
+import matplotlib.colors as color
+import functools as ft
+import copy
+
+def to_unit(arr):
+    scale = 0
+    output = []
+    for i in arr:
+        scale += i*i
+    scale = math.sqrt(scale)
+    if scale > 0.001:
+        for j in range(len(arr)):
+            output.append(arr[j] / scale)
+    else:
+        for j in range(len(arr)):
+            output.append(0)
+    return output
+
+def scale_arr(arr, scale):
+    output = []
+    for i in range(len(arr)):
+        output.append(arr[i] * scale)
+    return output
+        
+def arr_dif(arrA, arrB):
+    output = []
+    for i in range(len(arrA)):
+        output.append(arrA[i] - arrB[i])
+    return output
+
+class Node:
+    true_pos = [0, 0]
+    init_pos = [0, 0]
+    delta_pos = [0, 0]
+    parent = None
+    children = []
+    step_len = 1
+    weights = [1, 1, 1]
+    
+    def __init__(self, pos, delta, par, len, weight):
+        self.init_pos = pos
+        self.delta_pos = delta
+        self.step_len = len
+        self.true_pos = [0, 0]
+        self.calcTruePos()
+        self.parent = par
+        self.weights = weight
+        self.children = []
+        
+    def calcTruePos(self):
+        for i in range(2):
+            self.true_pos[i] = self.init_pos[i] + self.delta_pos[i] * self.step_len
+    
+    def relation_movement(self):
+        cousin_arr = []
+        sibling_arr = []
+        if self.parent is not None:
+            grand_par = self.parent.parent
+            if grand_par is not None:
+                for uncle in grand_par.children:
+                    if uncle is self.parent:
+                        for sibling in uncle.children:
+                            if sibling is not self:
+                                sibling_arr.append(sibling)
+                    else:
+                        for cousin in uncle.children:
+                            cousin_arr.append(cousin)
+            else:
+                for sibling in self.parent.children:
+                    if sibling is not self:
+                        sibling_arr.append(sibling)
+            sibling_pull = to_unit(ft.reduce(lambda x, y: [x[0] + y[0], x[1] + y[1]], map(lambda x: scale_arr(arr_dif(self.true_pos, x.true_pos), pow(self.inv_dist_to(x.true_pos), 2)), sibling_arr), [0, 0]))
+            cousin_push = to_unit(ft.reduce(lambda x, y: [x[0] + y[0], x[1] + y[1]], map(lambda x: scale_arr(arr_dif(self.true_pos, x.true_pos), -pow(self.inv_dist_to(x.true_pos), 3)), cousin_arr), [0, 0]))
+            for i in range(2):
+                self.delta_pos[i] = self.delta_pos[i] * self.weights[0] + sibling_pull[i] * self.weights[1] + cousin_push[i] * self.weights[2]
+            self.delta_pos = to_unit(self.delta_pos)
+
+    def inv_dist_to(self, arr):
+        result = self.dist_to(arr)
+        if result == 0:
+            return 0
+        return 1 / result
+    
+    def dist_to(self, arr):
+        return math.sqrt(math.pow(arr[0] - self.true_pos[0], 2) + math.pow(arr[1] - self.true_pos[1], 2))
+    
+    def new_gen(self):
+        if self.dist_to([0, 0]) < 5:
+            count = random.randint(1, 10)
+        else:
+            count = 2
+        for i in range(count):
+            dir = math.radians(random.randint(1, 360))
+            self.children.append(Node(self.true_pos, [math.cos(dir),math.sin(dir)], self, self.step_len, self.weights))
+    
+    def propogate(self, num):
+        if num == 0:
+            self.new_gen()
+        elif num == 1:
+            for child in self.children:
+                child.new_gen()
+            for child in self.children:
+                for grandchild in child.children:
+                    grandchild.relation_movement()
+                for grandchild in child.children:
+                    grandchild.calcTruePos()
+        else:
+            for child in self.children:
+                child.propogate(num - 1)
+    
+    def run_gens(self, num, **kwargs):
+        low = kwargs.get('last', 0)
+        for i in range(low,num):
+            print("Running gen i =",i)
+            self.propogate(i)
+            
+    def plot_path_helper(self, arr):
+        arr[0].append(self.true_pos[0])
+        arr[1].append(self.true_pos[1])
+        for child in self.children:
+            child.plot_path_helper(arr)
+        if self.children == []:
+            plot.plot(arr[0], arr[1], color=(random.random(), random.random(), random.random(), .1))
+            plot.plot([arr[0].pop()], [arr[1].pop()], 'o', color=(random.random(), random.random(), random.random(), .1))
+        else:
+            arr[0].pop()
+            arr[1].pop()
+            
+    def plot_path(self):
+        self.plot_path_helper([[], []])
+
+root = Node([0, 0], [0, 0], None, 1, [1, .5, .5])
+
+gen = 10
+root.run_gens(gen)
+plot.axis([-gen, gen, -gen, gen])
+plot.grid(True)
+ticks = []
+for i in range(3):
+    ticks.append(gen*i-gen)
+plot.xticks(ticks)
+plot.yticks(ticks)
+root.plot_path()
+
+plot.show()
