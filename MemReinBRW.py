@@ -89,7 +89,7 @@ class Node:
     
     def new_gen(self):
         if self.dist_to([0, 0]) < 5:
-            count = random.randint(1, 5)
+            count = random.randint(1, 10)
         else:
             count = 2
         for i in range(count):
@@ -132,30 +132,31 @@ class Node:
     def plot_path(self):
         self.plot_path_helper([[], []])
 
-root = Node([0, 0], [0, 0], None, 1, [1, .125, .125])
 
+step_length = 2
+root = Node([0, 0], [0, 0], None, step_length, [1, .125, .125])
 gen = 10
 root.run_gens(gen)
-plot.axis([-gen, gen, -gen, gen])
+plot.axis([-gen * step_length, gen * step_length, -gen * step_length, gen * step_length])
 plot.grid(True)
 ticks = []
-for i in range(3):
-    ticks.append(gen*i-gen)
+for i in range(2 * step_length + 1):
+    ticks.append(gen * i - gen * step_length)
 plot.xticks(ticks)
 plot.yticks(ticks)
 root.plot_path()
 granularity = 360
-for j in range(1, 11):
+for j in range(1, 10 * step_length + 1):
     circ_path = [[],[]]
     for i in range(granularity):
         circ_path[0].append(j*math.cos(math.radians(360*i/granularity)))
         circ_path[1].append(j*math.sin(math.radians(360*i/granularity)))
     circ_path[0].append(j)
     circ_path[1].append(0)
-    if j == 5:
+    if j % 5 == 0:
         plot.plot(circ_path[0], circ_path[1], color=(0, 1, 0, 1))
     else:
-        plot.plot(circ_path[0], circ_path[1], color=(0, 0, 1, .25))
+        plot.plot(circ_path[0], circ_path[1], color=(0, 0, 1, 1))
 
 
 plot.show()
