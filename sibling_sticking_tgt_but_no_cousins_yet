@@ -27,7 +27,7 @@ for gen in range(num_gen):
         last_x, last_y = path[-1]
 
         if gen == 0:
-            # Root agent: assign default angle
+            # ancestor agent
             angle = initial_angle
         else:
             # Calculate direction from previous step
@@ -35,8 +35,8 @@ for gen in range(num_gen):
             dy = last_y - path[-2][1]  # [1] is the y_coord
             angle = math.atan2(dy, dx)
 
-        # Sibling stickiness: use a common base angle for both children
-        sib_angle = angle + random.uniform(-0.1, 0.1)
+        # Sibling stickiness
+        sib_angle = angle + random.uniform(-0.15, 0.15)
 
         # Create 2 children with mirrored directions relative to sibling_angle
         for i in range(num_children):
