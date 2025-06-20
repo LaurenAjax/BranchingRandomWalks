@@ -72,8 +72,8 @@ class Node:
                 for sibling in self.parent.children:
                     if sibling is not self:
                         sibling_arr.append(sibling)
-            sibling_pull = to_unit(ft.reduce(lambda x, y: [x[0] + y[0], x[1] + y[1]], map(lambda x: scale_arr(arr_dif(self.true_pos, x.true_pos), pow(self.inv_dist_to(x.true_pos), 2)), sibling_arr), [0, 0]))
-            cousin_push = to_unit(ft.reduce(lambda x, y: [x[0] + y[0], x[1] + y[1]], map(lambda x: scale_arr(arr_dif(self.true_pos, x.true_pos), -pow(self.inv_dist_to(x.true_pos), 3)), cousin_arr), [0, 0]))
+            sibling_pull = to_unit(ft.reduce(lambda x, y: [x[0] + y[0], x[1] + y[1]], map(lambda x: scale_arr(arr_dif(self.true_pos, x.true_pos), -pow(self.inv_dist_to(x.true_pos), 2)), sibling_arr), [0, 0]))
+            cousin_push = to_unit(ft.reduce(lambda x, y: [x[0] + y[0], x[1] + y[1]], map(lambda x: scale_arr(arr_dif(self.true_pos, x.true_pos), pow(self.inv_dist_to(x.true_pos), 2)), cousin_arr), [0, 0]))
             for i in range(2):
                 self.delta_pos[i] = self.delta_pos[i] * self.weights[0] + sibling_pull[i] * self.weights[1] + cousin_push[i] * self.weights[2]
             self.delta_pos = to_unit(self.delta_pos)
@@ -89,7 +89,7 @@ class Node:
     
     def new_gen(self):
         if self.dist_to([0, 0]) < 5:
-            count = random.randint(1, 10)
+            count = random.randint(1, 5)
         else:
             count = 2
         for i in range(count):
@@ -123,8 +123,8 @@ class Node:
         for child in self.children:
             child.plot_path_helper(arr)
         if self.children == []:
-            plot.plot(arr[0], arr[1], color=(random.random(), random.random(), random.random(), .1))
-            plot.plot([arr[0].pop()], [arr[1].pop()], 'o', color=(random.random(), random.random(), random.random(), .1))
+            plot.plot(arr[0], arr[1], color=(0, 0, 0, .1))
+            plot.plot([arr[0].pop()], [arr[1].pop()], 'o', color=(1, 0, 0, .1))
         else:
             arr[0].pop()
             arr[1].pop()
@@ -132,7 +132,7 @@ class Node:
     def plot_path(self):
         self.plot_path_helper([[], []])
 
-root = Node([0, 0], [0, 0], None, 1, [1, .5, .5])
+root = Node([0, 0], [0, 0], None, 1, [1, .125, .125])
 
 gen = 10
 root.run_gens(gen)
@@ -144,5 +144,18 @@ for i in range(3):
 plot.xticks(ticks)
 plot.yticks(ticks)
 root.plot_path()
+granularity = 360
+for j in range(1, 11):
+    circ_path = [[],[]]
+    for i in range(granularity):
+        circ_path[0].append(j*math.cos(math.radians(360*i/granularity)))
+        circ_path[1].append(j*math.sin(math.radians(360*i/granularity)))
+    circ_path[0].append(j)
+    circ_path[1].append(0)
+    if j == 5:
+        plot.plot(circ_path[0], circ_path[1], color=(0, 1, 0, 1))
+    else:
+        plot.plot(circ_path[0], circ_path[1], color=(0, 0, 1, .25))
+
 
 plot.show()
