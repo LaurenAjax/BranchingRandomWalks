@@ -92,7 +92,7 @@ class Node:
     
     def new_gen(self):
         if self.dist_to([0, 0]) < 5:
-            count = random.randint(1, 5)
+            count = random.randint(1, 10)
         else:
             count = 2
         for i in range(count):
@@ -135,6 +135,17 @@ class Node:
             
     def plot_path(self):
         self.plot_path_helper([[], []])
+        
+    def plot_singular_path_helper(self, arr):
+        for child in self.children:
+            child.plot_singular_path_helper(self.true_pos)
+        plot.plot([arr[0], self.true_pos[0]], [arr[1], self.true_pos[1]], color=(0, 0, 0, .1))
+        if self.children == []:
+            plot.plot([self.true_pos[0]], [self.true_pos[1]], 'o', color=(1, 0, 0, .01))
+    
+    def plot_singular_path(self):
+        for child in self.children:
+            child.plot_singular_path_helper(self.true_pos)
 
 
 step_length = 1
@@ -148,7 +159,7 @@ for i in range(2 * step_length + 1):
     ticks.append(gens * i * 1.5 - gens * step_length * 1.5)
 plot.xticks(ticks)
 plot.yticks(ticks)
-root.plot_path()
+root.plot_singular_path()
 granularity = 360
 for j in range(1, math.ceil(gens * step_length * 1.5 + 1)):
     circ_path = [[], []]
