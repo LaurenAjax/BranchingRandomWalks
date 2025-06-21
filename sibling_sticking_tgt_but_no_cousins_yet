@@ -1,0 +1,75 @@
+import math
+import random
+import matplotlib.pyplot as plt
+
+# Calculate and store the distance of each agent in a node, or use a counter to represent each agent
+
+# Initialize the list of all paths; start with one agent at origin
+# Each path is a list of (x, y) positions showing the full trajectory of an agent
+# path is the trajectory of 1 agent
+# paths is the list of the trajectories of all agents
+paths = [[(0.0, 0.0)]]
+id_info = [(0, None)]  # id_info[i] = (generation, parent_id) for path i
+
+num_gen = 10               # number of generations (depth of tree)
+step_size = 1              # distance each agent moves per step
+initial_angle = math.pi / 2   # initial direction: straight upward (90 deg)
+angle_spread = math.pi / 6    # maximum divergence from parent's direction (30 deg)
+num_children = 2
+
+# Loop through each generation
+for gen in range(num_gen):
+    new_paths = []       # list to store the new generation of paths
+    new_id_info = []     # list to store (generation, parent_id) of new agents
+
+    for parent_id, path in enumerate(paths):
+        # path[-1]: Get the last location of the current agent
+        last_x, last_y = path[-1]
+
+        if gen == 0:
+            # ancestor agent
+            angle = initial_angle
+        else:
+            # Calculate direction from previous step
+            dx = last_x - path[-2][0]  # [0] is the x_coord
+            dy = last_y - path[-2][1]  # [1] is the y_coord
+            angle = math.atan2(dy, dx)
+
+        # Sibling stickiness
+        sib_angle = angle + random.uniform(-0.15, 0.15)
+
+        # Create 2 children with mirrored directions relative to sibling_angle
+        for i in range(num_children):
+            # One child left, one right (the symmetric part)
+            delta = 0.1 * (-1 if i == 0 else 1)  # slight deviation
+
+            # Final angle for this child
+            new_angle = sib_angle + delta
+
+            # Compute new position based on direction and step size
+            new_x = last_x + step_size * math.cos(new_angle)
+            new_y = last_y + step_size * math.sin(new_angle)
+
+            # Create a new path (copy of parent + new position)
+            new_path = path + [(new_x, new_y)]
+
+            # Add this new path and ID info to the next generation
+            new_paths.append(new_path)
+            new_id_info.append((gen + 1, parent_id))  # track generation and parent
+
+    # Move to the next generation
+    paths = new_paths
+    id_info = new_id_info
+
+for path in paths:
+    # Extract x and y coordinates
+    x_coord = [p[0] for p in path]
+    y_coord = [p[1] for p in path]
+
+    # Assign a random color
+    r, g, b = random.random(), random.random(), random.random()
+    plt.plot(x_coord, y_coord, color=(r, g, b, 0.1)) 
+    plt.plot(x_coord[-1], y_coord[-1], 'o', color=(r, g, b, 0.1), markersize=4)
+
+plt.grid()
+plt.show()
