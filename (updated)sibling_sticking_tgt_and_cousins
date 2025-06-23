@@ -2,7 +2,6 @@ import math
 import random
 import matplotlib.pyplot as plt
 
-# Calculate and store the distance of each agent in a node, or use a counter to represent each agent
 
 # Initialize the list of all paths; start with one agent at origin
 # Each path is a list of (x, y) positions showing the full trajectory of an agent
@@ -11,18 +10,20 @@ import matplotlib.pyplot as plt
 paths = [[(0.0, 0.0)]]
 id_info = [(0, None)]  # id_info[i] = (generation, parent_id) for path i
 
-num_gen = 10               # number of generations (depth of tree)
+num_gen = 8               # number of generations (depth of tree)
 step_size = 1              # distance each agent moves per step
 initial_angle = math.pi / 2   # initial direction: straight upward (90 deg)
 angle_spread = math.pi / 6    # maximum divergence from parent's direction (30 deg)
-num_children = 2
+num_children = 2           # include a terminating generation
+repel_strength = 0.02      # strength of cousin repulsion
 
 # Loop through each generation
 for gen in range(num_gen):
     new_paths = []       # list to store the new generation of paths
     new_id_info = []     # list to store (generation, parent_id) of new agents
 
-    for parent_id, path in enumerate(paths):
+    # enumerate(paths) turns the list paths into an iterator that yields pairs: (parent_id, path)
+    for parent_id, path in enumerate(paths): 
         # path[-1]: Get the last location of the current agent
         last_x, last_y = path[-1]
 
@@ -57,9 +58,37 @@ for gen in range(num_gen):
             new_paths.append(new_path)
             new_id_info.append((gen + 1, parent_id))  # track generation and parent
 
+    # Apply cousin repulsion 
+    gen_pos = [p[-1] for p in new_paths]
+    parent_ids = [info[1] for info in new_id_info]
+
+    adjusted_paths = []
+    adjusted_id_info = []
+
+    for i, path in enumerate(new_paths):
+        x, y = path[-1]
+        repel_x = 0
+        repel_y = 0
+
+        for j, (cousin_x, cousin_y) in enumerate(gen_pos):
+            if i != j and parent_ids[i] != parent_ids[j]:
+                dx = x - cousin_x
+                dy = y - cousin_y
+                repel_x += dx
+                repel_y += dy
+
+        # Apply total repulsion
+        x += repel_strength * repel_x
+        y += repel_strength * repel_y
+
+        # Update final path
+        new_path = path[:-1] + [(x, y)]
+        adjusted_paths.append(new_path)
+        adjusted_id_info.append(new_id_info[i])
+
     # Move to the next generation
-    paths = new_paths
-    id_info = new_id_info
+    paths = adjusted_paths
+    id_info = adjusted_id_info
 
 for path in paths:
     # Extract x and y coordinates
@@ -68,7 +97,7 @@ for path in paths:
 
     # Assign a random color
     r, g, b = random.random(), random.random(), random.random()
-    plt.plot(x_coord, y_coord, color=(r, g, b, 0.1)) 
+    plt.plot(x_coord, y_coord, color=(r, g, b, 0.1))
     plt.plot(x_coord[-1], y_coord[-1], 'o', color=(r, g, b, 0.1), markersize=4)
 
 plt.grid()
