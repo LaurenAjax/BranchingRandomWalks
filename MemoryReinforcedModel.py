@@ -50,7 +50,7 @@ while count < len(lst):
         # assigns a value to the first kid of a parent who has a parent
             for j in range(lst[count].parent.num_kids):
                 if lst[count].parent.next[j] is lst[count]:
-                    angle = math.radians(random.randint(int(360 / lst[count].parent.num_kids) * j - 5, int(360 / lst[count].parent.num_kids) * j + 5))
+                    angle = math.radians(random.randint(int(360 / lst[count].parent.num_kids) * j - (int(math.degrees(lst[count].angle)) - 90) - 5, int(360 / lst[count].parent.num_kids) * j - (int(math.degrees(lst[count].angle)) - 90) + 5))
                     # makes the cousins equidistant from each other (for maximum repulsion) according to parent birth order
         else:
             angle = math.radians(random.randint(int(math.degrees(lst[count].next[0].angle)) - 5, int(math.degrees(lst[count].next[0].angle)) + 5))
@@ -65,7 +65,7 @@ while count < len(lst):
         # produces the distance from the origin to the kid node
         cur_theta = math.atan2(cur_y, cur_x)
         # produces the angle the kid node has from the origin
-        if cur_gen == 3:
+        if cur_gen == 5:
             cur_node = Node(lst[count], angle, cur_theta, cur_r, 0, steps, cur_gen)
             # prevents further kids from being born after the third generation
         elif cur_r > 5:
@@ -82,7 +82,7 @@ while count < len(lst):
     # increases the index currently being referenced by 1
 
 for node in lst:
-    plt.polar(node.theta_coord, node.r_coord, 'o', color=(0, 0, 0, 0.1))
+    plt.polar(node.theta_coord, node.r_coord, 'o', color=(0, 0, 0, 0.01))
     # plots a transparent black dot at the polar coordinates of all the nodes
     for kid in node.next:
         plt.polar([node.theta_coord, kid.theta_coord], [node.r_coord, kid.r_coord], color=(random.random(), random.random(), random.random(), 0.5))
