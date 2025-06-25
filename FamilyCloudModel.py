@@ -59,6 +59,9 @@ while count < len(lst):
             if top > node.upper_bound:
                 top = node.upper_bound
             angle = random.randint(bottom, top)
+        for grandparent in node.parent.parent.next:
+            if grandparent is not node.parent:
+                for parent
         cur_x = prev_x + steps * math.cos(math.radians(angle))
         cur_y = prev_y + steps * math.sin(math.radians(angle))
         cur_r = math.sqrt(cur_x**2 + cur_y**2)
@@ -71,7 +74,7 @@ while count < len(lst):
             cur_node = Node(node, angle, cur_theta, cur_r, random.randint(1, 10), steps, cur_gen)
         node.next.append(cur_node)
         lst.append(cur_node)
-    order(node)
+    sort(node.next)
     count += 1
 
 for node in lst:
