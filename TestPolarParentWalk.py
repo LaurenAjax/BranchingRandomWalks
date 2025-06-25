@@ -26,21 +26,22 @@ count = 0
 
 while count < len(lst):
 # visits all nodes and gives them kids
-    cur_gen = lst[count].gen + 1
+    node = lst[count]
+    cur_gen = node.gen + 1
     # the current number of nodes we are away from the origin
-    prev_r = lst[count].r_coord
+    prev_r = node.r_coord
     # the parent node's distance from the origin
-    prev_theta = lst[count].theta_coord
+    prev_theta = node.theta_coord
     # the parent node's angle from the origin
     prev_x = prev_r * math.cos(prev_theta)
     # the parent node's x-coordinate on the xy-plane
     prev_y = prev_r * math.sin(prev_theta)
     # the parent node's y-coordinate on the xy-plane
-    for i in range(lst[count].num_kids):
+    for i in range(node.num_kids):
     # generates all of the parent's kids
         random_value = random.randint(1, 22)
         # a random value whose outcome determines the direction in which the kid node goes
-        if (lst[count].parent != None):
+        if (node.parent != None):
         # checks whether or not the parent node is the first node
             if random_value < 22:
                 angle = math.radians(random.randint(int(math.degrees(prev_theta)) - 10 - cur_gen, int(math.degrees(prev_theta)) + 10 + cur_gen))
@@ -71,12 +72,12 @@ while count < len(lst):
         cur_theta = math.atan2(cur_y, cur_x)
         # produces the angle the kid node has from the origin
         if cur_gen == 10:
-            cur_node = Node(lst[count], cur_theta, cur_r, 0, cur_gen)
+            cur_node = Node(node, cur_theta, cur_r, 0, cur_gen)
             # prevents further kids from being born after the tenth generation
         else:
-            cur_node = Node(lst[count], cur_theta, cur_r, random.randint(0, 4), cur_gen)
+            cur_node = Node(node, cur_theta, cur_r, random.randint(0, 4), cur_gen)
             # forms the kid node that will have a random number of kids in turn
-        lst[count].next.append(cur_node)
+        node.next.append(cur_node)
         # adds the kid node to the parent node's array of kids
         lst.append(cur_node)
         # adds the kid node to the list of all nodes in the tree

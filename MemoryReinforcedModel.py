@@ -22,6 +22,7 @@ class Node:
         # the number of nodes away from the starting node this node is
 
 def sort(arr):
+# sorts the given array from smallest value to largest
     for i in range(1, len(arr)):
         for j in range(i - 1, -1, -1):
             if arr[j + 1].angle < arr[j].angle:
@@ -30,12 +31,12 @@ def sort(arr):
                 arr[j] = temp
 
 def order(node): 
+# splits the array and reconcatenates it so that the middlemost element is first
     counter = len(node.next) // 2
     sort(node.next)
     first_list = node.next[:counter]
     second_list = node.next[counter:]
     node.next = second_list + first_list
-
 
 root = Node(None, 0, 0, 0, random.randint(1, 10), random.randint(1, 5), 0)
 # the starting node from which all subsequent nodes are generated
@@ -46,11 +47,12 @@ count = 0
 
 while count < len(lst):
 # visits all nodes and gives them kids
-    cur_gen = lst[count].gen + 1
+    node = lst[count]
+    cur_gen = node.gen + 1
     # the current number of nodes we are away from the origin
-    prev_r = lst[count].r_coord
+    prev_r = node.r_coord
     # the parent node's distance from the origin
-    prev_theta = lst[count].theta_coord
+    prev_theta = node.theta_coord
     # the parent node's angle from the origin
     prev_x = prev_r * math.cos(prev_theta)
     # the parent node's x-coordinate on the xy-plane
@@ -58,20 +60,20 @@ while count < len(lst):
     # the parent node's y-coordinate on the xy-plane
     steps = random.randint(1, 5)
     # the number of steps the kid nodes will move before having kids
-    for i in range(lst[count].num_kids):
+    for i in range(node.num_kids):
     # generates all of the parent's kids
-        if (i == 0 and lst[count].parent == None):
+        if i == 0 and node.parent == None:
         # assigns a value to the first kid of a parent who doesn't have a parent
             angle = random.randint(1, 360)
             # a random value whose outcome is the degree in which the kid node goes
-        elif (i == 0):
+        elif i == 0:
         # assigns a value to the first kid of a parent who has a parent
-            for j in range(lst[count].parent.num_kids):
-                if lst[count].parent.next[j] is lst[count]:
-                    angle = random.randint((360 // lst[count].parent.num_kids) * j + lst[count].angle - 5, (360 // lst[count].parent.num_kids) * j + lst[count].angle + 5)
+            for j in range(node.parent.num_kids):
+                if node.parent.next[j] is node:
+                    angle = random.randint((360 // node.parent.num_kids) * j + node.angle - 5, (360 // node.parent.num_kids) * j + node.angle + 5)
                     # makes the cousins equidistant from each other (for maximum repulsion) according to parent birth order
         else:
-            angle = random.randint(lst[count].next[0].angle - 5, lst[count].next[0].angle + 5)
+            angle = random.randint(node.next[0].angle - 5, node.next[0].angle + 5)
             # keeps the siblings close to their eldest
         cur_x = prev_x + steps * math.cos(math.radians(angle))
         # produces the x-coordinate of the kid node
@@ -82,19 +84,19 @@ while count < len(lst):
         cur_theta = math.atan2(cur_y, cur_x)
         # produces the angle the kid node has from the origin
         if cur_gen == 5:
-            cur_node = Node(lst[count], angle, cur_theta, cur_r, 0, steps, cur_gen)
+            cur_node = Node(node, angle, cur_theta, cur_r, 0, steps, cur_gen)
             # prevents further kids from being born after the third generation
         elif cur_r > 5:
-            cur_node = Node(lst[count], angle, cur_theta, cur_r, 2, steps, cur_gen)
+            cur_node = Node(node, angle, cur_theta, cur_r, 2, steps, cur_gen)
             # has exactly two kids when greater than distance 5 away from the origin
         else:
-            cur_node = Node(lst[count], angle, cur_theta, cur_r, random.randint(1, 10), steps, cur_gen)
+            cur_node = Node(node, angle, cur_theta, cur_r, random.randint(1, 10), steps, cur_gen)
             # has in between one and ten kids when distance 5 or less from the origin
-        lst[count].next.append(cur_node)
+        node.next.append(cur_node)
         # adds the kid node to the parent node's array of kids
         lst.append(cur_node)
         # adds the kid node to the list of all nodes in the tree
-    order(lst[count])
+    order(node)
     # orders the kids to ensure cousins don't intersect
     count += 1
     # increases the index currently being referenced by 1
