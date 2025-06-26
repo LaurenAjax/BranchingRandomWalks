@@ -1,0 +1,114 @@
+# siblings sticky and 1st cousins repelling.  
+import math
+import random
+import matplotlib.pyplot as plt
+
+random.seed(42)
+
+# Initialize the list of all paths; start with one agent at origin
+# Each path is a list of (x, y) positions showing the full trajectory of an agent
+# path is the trajectory of 1 agent
+# paths is the list of the trajectories of all agents
+paths = [[(0.0, 0.0)]]
+id_info = [(0, None)]  # id_info[i] = (generation, parent_id) for path i
+
+num_gen = 10                 # number of generations (depth of tree)
+step_size = 1              # distance each agent moves per step
+initial_angle = math.pi / 2   # initial direction: straight upward (90 deg)
+num_children = 2           # include a terminating generation
+repel_strength = 0.5       # influence of cousin repulsion
+repel_radius = 2.0         # only repel if cousins are this close
+
+# Loop through each generation
+for gen in range(num_gen):
+    new_paths = []       # list to store the new generation of paths
+    new_id_info = []     # list to store (generation, parent_id) of new agents
+
+    # Last generation's positions and parent IDs
+    gen_pos = [path[-1] for path in paths] # This creates a list of the current positions (endpoints) of all agents in the current generation.
+    parent_ids = [parent_id for gen, parent_id in id_info]
+
+    # enumerate(paths) turns the list paths into an iterator that yields pairs: (parent_id, path)
+    for parent_id, path in enumerate(paths):
+        # path[-1]: Get the last location of the current agent
+        last_x, last_y = path[-1]
+
+        # Direction of parent's last step
+        if gen == 0:
+            parent_angle = initial_angle
+        else:
+            dx = last_x - path[-2][0]
+            dy = last_y - path[-2][1]
+            parent_angle = math.atan2(dy, dx)
+
+        # Convert parent angle to unit direction vector
+        dir_x = math.cos(parent_angle)
+        dir_y = math.sin(parent_angle)
+
+        # Repulsion from first cousins within a radius
+        repel_vec_x, repel_vec_y = 0.0, 0.0
+        my_parent = parent_ids[parent_id]
+        my_grandparent = parent_ids[my_parent] if my_parent is not None else None
+
+        for j, (cousin_x, cousin_y) in enumerate(gen_pos): # gen_pos[j] = (x, y) is the position of agent j.
+            cousin_parent = parent_ids[j] # Get the parent ID of cousin j.
+            
+            # Get the grandparent of cousin j by looking up their parent's parent in parent_ids.
+            cousin_grandparent = parent_ids[cousin_parent] if cousin_parent is not None else None
+  
+
+            if (
+                j != parent_id and # Don’t repel from yourself.
+                cousin_parent != my_parent and # don't repel from your parents
+                cousin_grandparent == my_grandparent and # if you and your cousin share the same grandparent 
+                my_grandparent is not None # There actually exists a grandparents
+            ):
+                dx = last_x - cousin_x
+                dy = last_y - cousin_y
+                distance = math.hypot(dx, dy) # distance between your current location and the cousin's.
+                if distance < repel_radius:
+                    #factor = (repel_radius - distance) / repel_radius  # stronger when closer (linear decay)
+                    factor = math.exp(-distance / repel_radius) # exponential decay
+                    repel_vec_x += factor * dx / (distance + 1e-5)
+                    repel_vec_y += factor * dy / (distance + 1e-5)
+
+        # Blend the parent's direction and repulsion vector
+        # we want to combine two influences on the agent's direction:
+        # where the agent was already heading + where the nearby cousins are.
+        blended_x = dir_x + repel_strength * repel_vec_x
+        blended_y = dir_y + repel_strength * repel_vec_y
+        adjusted_angle = math.atan2(blended_y, blended_x)
+
+        # Sibling stickiness: one shared base angle for both children
+        shared_sib_angle = adjusted_angle + random.uniform(-0.15, 0.15) # symmetric not uniform
+
+        # Create 2 children with mirrored directions relative to sibling angle
+        for i in range(num_children):
+            delta = 0.1 * (-1 if i == 0 else 1)
+            new_angle = shared_sib_angle + delta
+
+            # Compute new position based on direction and step size
+            new_x = last_x + step_size * math.cos(new_angle)
+            new_y = last_y + step_size * math.sin(new_angle)
+
+            # Create a new path (copy of parent + new position)
+            new_path = path + [(new_x, new_y)]
+
+            # Add this new path and ID info to the next generation
+            new_paths.append(new_path)
+            new_id_info.append((gen + 1, parent_id))  # track generation and parent
+
+    # Move to the next generation
+    paths = new_paths
+    id_info = new_id_info
+
+# Plot the paths
+for path in paths:
+    x_coord = [p[0] for p in path]
+    y_coord = [p[1] for p in path]
+    r, g, b = random.random(), random.random(), random.random()
+    plt.plot(x_coord, y_coord, color=(r, g, b, 0.2))
+    plt.plot(x_coord[-1], y_coord[-1], 'o', color=(r, g, b, 0.1), markersize=4)
+
+plt.grid()
+plt.show()
