@@ -83,9 +83,9 @@ while count < len(lst):
                                 distance = math.sqrt((node_x - cousin_x)**2 + (node_y - cousin_y)**2)
                                 if distance < 2:
                                     if steps < 4:
-                                        steps += 1
+                                        steps += 2
                                     else:
-                                        steps -= 1
+                                        steps -= 2
         cur_x = prev_x + steps * math.cos(math.radians(angle))
         cur_y = prev_y + steps * math.sin(math.radians(angle))
         cur_r = math.sqrt(cur_x**2 + cur_y**2)
