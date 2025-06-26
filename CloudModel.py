@@ -50,7 +50,7 @@ while count < len(lst):
         r = cur_r
         theta = cur_theta
         for ln in lst:
-            if abs(cur_r - ln.r_coord) > 1 and abs(cur_theta - ln.theta_coord) > 0.02:
+            if abs(cur_r - ln.r_coord) > 3 and abs(cur_theta - ln.theta_coord) > 0.05:
                 steps = random.randint(1, 5)
                 angle = random.randint(1, 360)
                 cur_x = prev_x + steps * math.cos(math.radians(angle))
@@ -62,7 +62,7 @@ while count < len(lst):
             r = cur_r
             theta = cur_theta
             for ln in lst:
-                if abs(cur_r - ln.r_coord) > 1 and abs(cur_theta - ln.theta_coord) > 0.02:
+                if abs(cur_r - ln.r_coord) > 3 and abs(cur_theta - ln.theta_coord) > 0.05:
                     steps = random.randint(1, 5)
                     angle = random.randint(1, 360)
                     cur_x = prev_x + steps * math.cos(math.radians(angle))
@@ -79,7 +79,6 @@ while count < len(lst):
             cur_node = Node(node, angle, cur_theta, cur_r, random.randint(1, 10), steps, cur_gen)
         node.next.append(cur_node)
         lst.append(cur_node)
-    order(node)
     count += 1
 
 for node in lst:
