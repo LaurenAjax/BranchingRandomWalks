@@ -121,7 +121,7 @@ for i in range(gens):
     # Set the living_gen to the new generation.
     col = color.hsv_to_rgb((i / gens, 1, 1))
     # Set the color of dots.
-    col = (col[0], col[1], col[2], 0.5 / (i+1))
+    col = (col[0], col[1], col[2], math.pow(0.5,(i)/2+1))
     for node in living_gen:
     # For each living Node:
         plot.plot([node.pos[0]], [node.pos[1]], 'o', color = col)
