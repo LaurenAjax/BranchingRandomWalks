@@ -50,6 +50,12 @@ def arr_sum(arrA, arrB):
     return output
 
 def arr_dist(arrA, arrB):
+    """Return the distance between two arrays.
+
+    Keyword arguments:
+    arrA -- the first array (length n)
+    arrB -- the second array (length n)
+    """
     scale = 0
     for i in range(len(arrA)):
         scale += pow(arrA[i]-arrB[i],2)
@@ -57,9 +63,13 @@ def arr_dist(arrA, arrB):
     return scale
 
 class Node:
+    """A Node class implementation."""
     def __init__(self, loc, bearing, pf, df, pop, gen):
+        """Initialize a Node."""
         self.pos = loc
+        # This Node's parent
         self.dir = bearing
+        # The direction away from this Node's parent,
         self.propogation_func = pf
         # A function based on the generation number and the density of the prior generation.
         self.density_func = df
@@ -72,42 +82,87 @@ class Node:
         # The generation number.
     
     def get_density(self):
+        """Get this Node's density."""
         return self.density_func(self, self.generation, self.population)        
     
     def make_children(self, next_gen_ref):
+        """Create this Node's next children."""
         relative_density = self.get_density()
+        # Get the relative density of this parent Node.
         child_count = self.propogation_func(self, self.generation, relative_density)
+        # Get the expect child count for this parent Node.
+        if self.generation == 0:
+        # If this is the first generation:
+            for i in range(child_count):
+            # For each expected child:
+                bearing = random.random() * math.pi * 2
+                # Generate a random angle for the new node's bearing.
+                Node(arr_sum(bearing, self.pos), bearing, self.propogation_func, self.density_func, next_gen_ref, 1)
+                # Create a new Node with:
+                #   An initial position.
+                #   An initial bearing (angle).
+                #   The propogation function.
+                #   The density function.
+                #   A reference to this new node's generation.
+                #   The new node's generation as a number.
+            return
+            # Create no more children.
+        # Otherwise: 
         for i in range(child_count):
-            bearing = random.random() * math.pi * 2
-            bearing = to_unit(arr_sum([math.cos(bearing),math.sin(bearing)],scale_arr(self.dir, relative_density)))
+        # For each expected child:
+            bearing = math.atan2(self.dir[1],self.dir[0]) + random.random() * math.pi * 2 / 3 - math.pi / 3
+            # Generate an angle between (-60, 60) of the parent's angle.
+            bearing = to_unit(arr_sum(scale_arr([math.cos(bearing), math.sin(bearing)], 1 - relative_density), self.dir))
+            # Normalize the angle based on density.
             Node(arr_sum(bearing, self.pos), bearing, self.propogation_func, self.density_func, next_gen_ref, self.generation + 1)
+            # Create a new Node with:
+            #   An initial position.
+            #   An initial bearing (angle).
+            #   The propogation function.
+            #   The density function.
+            #   A reference to this new node's generation.
+            #   The new node's generation as a number.
 
 def pA(s, gen, density):
+    """A defined propogation function.
+    
+    Returns that two children are expected no matter what."""
     return 2
 
 def pB(s, gen, density):
-    if density >= 5:
-        return random.randint(1, 2)
-    return random.randint(1, math.ceil(10 / density))
+    """A defined propogation function.
+    
+    Returns that a random number of chihldren are expected based on the density."""
+    if density > 0.5:
+        return random.randint(0, 2)
+    return random.randint(2, 5)
 
 def dA(s, gen, pop_arr):
+    """A defined density function.
+    
+    Returns the density according to the sum of 1/(1+x^2), where x is the distance to any Node in the same generation."""
     density = 0
     for i in pop_arr:
         density += 1 / (1 + pow(arr_dist(s.pos, i.pos),2))
-    return density
+    return 1 / (1 + pow(math.e, .25*(10 - density)))
 
 def dB(s, gen, pop_arr):
+    """A defined density function.
+    
+    Returns the density according to the number of Nodes within 1 unit in the same generation."""
     density = 0
     for i in pop_arr:
         if arr_dist(s.pos, i.pos) < 1:
             density += 1
-    return density
+    return 1 / (1 + pow(math.e, .25*(10 - density)))
 
-living_gen = [Node([0,0], [0,0], pA, dA, [], 0)]
+living_gen = [Node([0,0], [0,0], pB, dA, [], 0)]
 # Define the structure of the Node, with initial location, bearing, propogation function, density function, array of those within this generation, and the initial generation number
 
-gens = 10
+gens = 15
 # Set the number of generations to run for
+plot.figure(figsize=(6,6))
+# Set the dimensions of the output window to 6 by 6.
 
 for i in range(gens):
     print("Computing gen",i+1)
@@ -121,7 +176,7 @@ for i in range(gens):
     # Set the living_gen to the new generation.
     col = color.hsv_to_rgb((i / gens, 1, 1))
     # Set the color of dots.
-    col = (col[0], col[1], col[2], math.pow(0.5,(i)/2+1))
+    col = (col[0], col[1], col[2], 0.1)
     for node in living_gen:
     # For each living Node:
         plot.plot([node.pos[0]], [node.pos[1]], 'o', color = col)
@@ -147,11 +202,11 @@ for j in range(1, math.ceil(gens + 1)):
     # Close the circular path by appending 0 to the y coordinate array.
     if j % 5 == 0:
     # If the radius is a multiple of 5: 
-        plot.plot(circ_path[0], circ_path[1], color = (0, 1, 0, .1))
+        plot.plot(circ_path[0], circ_path[1], color = (0, 0, 0, 1))
         # Plot a green circle.
     else:
     # Otherwise:
-        plot.plot(circ_path[0], circ_path[1], color = (0, 0, 1, .1))
+        plot.plot(circ_path[0], circ_path[1], color = (.5, .5, .5, 1))
         # Plot a blue circle.
 plot.plot([0], [0], 'o', color = (0, 1, 0, 1))
 # Plot a green dot in the center.
