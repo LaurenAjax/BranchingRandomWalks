@@ -1,0 +1,183 @@
+# siblings sticky and 1st cousins repelling.  
+# repulsion fixed.
+# higher branching rate for pre-k gens.
+
+import math
+import random
+import matplotlib.pyplot as plt
+
+# Parameters
+num_gen           = 5                 # total num of gens
+step_size         = 2                 # distance each agent moves per step
+initial_angle     = math.pi / 2       # initial direction: (90°)
+num_children      = 2                 # post-k: number of children per agent
+pre_k_children    = 100               # pre-k: high offspring count to form dense clusters
+repel_strength    = 0.2               # cousin repulsion influence
+repel_radius      = 1                 # repulsion only activates within this range
+err               = 1e-6              # small error for distance equality
+gen_split_k       = 1                 # switch from pre-k (dense) to post-k (spread out)
+
+# Initialize
+paths   = [[(0.0, 0.0)]]              # each path = trajectory of an agent
+id_info = [(0, None)]                # (generation, parent_id) for each agent
+
+# Start generating offspring
+for gen in range(num_gen):
+    new_paths   = []
+    new_id_info = []
+
+    # Gather parent positions and their parent IDs
+    gen_pos    = [p[-1] for p in paths]
+    parent_ids = [pid for gen, pid in id_info]
+
+    for parent_id, path in enumerate(paths):
+        last_x, last_y = path[-1]
+
+        # Direction of parent's last step
+        if gen == 0:
+            angle = initial_angle
+        else:
+            dx = last_x - path[-2][0]
+            dy = last_y - path[-2][1]
+            angle = math.atan2(dy, dx)
+
+        # Repulsion from 1st cousins after generation k
+        rep_x = rep_y = 0.0
+        if gen >= gen_split_k:
+            my_parent_id = parent_ids[parent_id]
+            my_grandparent_id = parent_ids[my_parent_id] if my_parent_id is not None else None
+
+            for j, (cx, cy) in enumerate(gen_pos):
+                cousin_parent_id = parent_ids[j]
+                cousin_grandparent_id = parent_ids[cousin_parent_id] if cousin_parent_id is not None else None
+
+                if (
+                    j != parent_id and
+                    cousin_parent_id != my_parent_id and
+                    cousin_grandparent_id == my_grandparent_id and
+                    my_grandparent_id is not None
+                ):
+                    dx = last_x - cx
+                    dy = last_y - cy
+                    d = math.hypot(dx, dy)
+                    if d < repel_radius:
+                        f = (repel_radius - d) / repel_radius
+                        rep_x += f * dx / (d + 1e-5)
+                        rep_y += f * dy / (d + 1e-5)
+
+        # Blend inherited direction and repulsion
+        if gen >= gen_split_k:
+            blended_x = math.cos(angle) + repel_strength * rep_x
+            blended_y = math.sin(angle) + repel_strength * rep_y
+            blended_angle = math.atan2(blended_y, blended_x)
+        else:
+            blended_angle = angle
+
+        # Choose number of children
+        count = pre_k_children if gen < gen_split_k else num_children
+
+        if gen < gen_split_k:
+            # PRE-k: symmetric spread over full 360°
+            for i in range(count):
+                delta = 2 * math.pi * i / count
+                ang   = blended_angle + delta + + random.uniform(-0.5, 0.5)
+                nx    = last_x + step_size * math.cos(ang)
+                ny    = last_y + step_size * math.sin(ang)
+                new_paths.append(path + [(nx, ny)])
+                new_id_info.append((gen + 1, parent_id))
+        else:
+            # POST-k: siblings stick with shared base direction, symmetric not uniform
+            shared_sib = blended_angle + random.uniform(-0.5, 0.5)
+            for i in range(count):
+                delta = 0.1 * (-1 if i == 0 else 1)
+                ang   = shared_sib + delta
+                nx    = last_x + step_size * math.cos(ang)
+                ny    = last_y + step_size * math.sin(ang)
+                new_paths.append(path + [(nx, ny)])
+                new_id_info.append((gen + 1, parent_id))
+
+    # Extra cousin repulsion (post-k only)
+    if gen >= gen_split_k:
+        repel_check = 0
+        while repel_check < 5:
+            moved = False
+            for i in range(len(new_paths)):
+                for j in range(i + 1, len(new_paths)):
+                    parent_i = new_id_info[i][1]
+                    parent_j = new_id_info[j][1]
+                    grandparent_i = parent_ids[parent_i] if parent_i is not None else None
+                    grandparent_j = parent_ids[parent_j] if parent_j is not None else None
+
+                    is_cousins = (
+                        parent_i is not None and
+                        parent_j is not None and
+                        parent_i != parent_j and
+                        grandparent_i is not None and
+                        grandparent_j is not None and
+                        grandparent_i == grandparent_j
+                    )
+
+                    if is_cousins:
+                        xi, yi = new_paths[i][-1]
+                        xj, yj = new_paths[j][-1]
+                        dx, dy = xi - xj, yi - yj
+                        d = math.hypot(dx, dy)
+                        if d > 1e-5 and d < repel_radius - err: # just in case after rounding d = radius
+                            move = (repel_radius - d) / 2
+                            ux, uy = dx / d, dy / d # unit direction vector from agent j to i
+                            new_paths[i][-1] = (xi + ux * move, yi + uy * move)
+                            new_paths[j][-1] = (xj - ux * move, yj - uy * move)
+                            moved = True
+
+            if moved:
+                repel_check += 1
+            else:
+                repel_check = 5  # exit the loop early
+
+    # update paths and id_info
+    paths, id_info = new_paths, new_id_info
+
+# Plot the paths
+for path in paths:
+    x_coord = [p[0] for p in path]
+    y_coord = [p[1] for p in path]
+    r, g, b = random.random(), random.random(), random.random()
+    plt.plot(x_coord, y_coord, color=(r, g, b, 0.2))
+    plt.plot(x_coord[-1], y_coord[-1], 'o', color=(r, g, b, 0.1), markersize=4)
+
+plt.grid()
+plt.axis("equal")
+plt.show()
+
+# FIRST COUSIN DISTANCE CHECK
+print("*** FIRST COUSIN DISTANCE CHECK ***")
+violations = 0
+parent_ids = [pid for gen, pid in id_info]  # update parent_ids to latest generation
+for i in range(len(paths)):
+    for j in range(i + 1, len(paths)):
+        parent_i = id_info[i][1]
+        parent_j = id_info[j][1]
+        grandparent_i = parent_ids[parent_i] if parent_i is not None else None
+        grandparent_j = parent_ids[parent_j] if parent_j is not None else None
+
+        is_cousins = (
+            parent_i != parent_j and
+            parent_i is not None and
+            parent_j is not None and
+            grandparent_i is not None and
+            grandparent_j is not None and
+            grandparent_i == grandparent_j
+        )
+
+        if is_cousins:
+            xi, yi = paths[i][-1]
+            xj, yj = paths[j][-1]
+            dist = math.hypot(xi - xj, yi - yj)
+            if dist < repel_radius - err:
+                print(f"Cousins {i} & {j} too close: {dist:.3f}")
+                violations += 1
+
+if violations == 0:
+    print("All first cousins are at safe distances.")
+else:
+    print("First cousin pairs are too close.")
