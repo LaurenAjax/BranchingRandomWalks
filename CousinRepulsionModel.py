@@ -1,4 +1,7 @@
 import matplotlib.pyplot as plt
+import matplotlib.style as style
+from matplotlib.collections import LineCollection
+import numpy as np
 import random
 import math
 
@@ -28,7 +31,7 @@ def generate_node(parent_node, lower_bound, upper_bound):
     angle = random.randint(lower_bound, upper_bound)
     kid_x = parent_node.x_coord + math.cos(angle)
     kid_y = parent_node.y_coord + math.sin(angle)
-    if parent_node.gen < 19:
+    if parent_node.gen < 20:
         return Node(parent_node, angle, kid_x, kid_y, 2, parent_node.gen + 1)
     else:
         return Node(parent_node, angle, kid_x, kid_y, 0, parent_node.gen + 1)
@@ -59,7 +62,7 @@ def build_gen(cur_gen):
                         angle = random.randint(parent_node.angle - 85, parent_node.angle + 85)
                         kid_x = parent_node.x_coord + math.cos(angle)
                         kid_y = parent_node.y_coord + math.sin(angle)
-                        if parent_node.gen < 19:
+                        if parent_node.gen < 20:
                             kid_node = Node(parent_node, angle, kid_x, kid_y, 2, parent_node.gen + 1)
                         else:
                             kid_node = Node(parent_node, angle, kid_x, kid_y, 0, parent_node.gen + 1)
@@ -83,6 +86,14 @@ def build_gen(cur_gen):
                         parent_node.next.append(kid_node)
                         next_gen.append(kid_node)
         build_gen(next_gen)
+
+def build_plot(cur_gen):
+    next_gen = []
+    for parent_node in cur_gen:
+        for kid_node in parent_node.next:
+            plt.plot([parent_node.x_coord, kid_node.x_coord], [parent_node.y_coord, kid_node.y_coord])
+        next_gen = next_gen + parent_node.next
+    build_plot(next_gen)
 
 build_gen([root])
 print("Model Built!")
