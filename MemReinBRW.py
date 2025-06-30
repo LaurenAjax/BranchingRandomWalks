@@ -136,7 +136,7 @@ class Node:
                     else:
                     # Otherwise, if the child of the grand parent is not the parent:
                         for cousin in uncle.children:
-                        # For each cousin of the Node: 
+                        # For each cousin of the Node:
                             cousin_arr.append(cousin)
                             # Append a reference to that cousin to the cousin array
             else:
@@ -194,7 +194,7 @@ class Node:
         """Generate children for this Node."""
         if self.dist_to([0, 0]) < 5:
         # If the distance to the origin is less than 5 units:
-            count = random.randint(1, 5)
+            count = random.randint(1, 6)
             # Generate a random number of kids between 1 and a number.
         else:
         # Otherwise:
@@ -321,7 +321,7 @@ class Node:
             # Call the helper function with this Node's true position array.
 
 
-step_length = 2
+step_length = 3
 # Define the step length the Node's will have (integer expected).
 root = Node([0, 0], [0, 0], None, step_length, [1, .5, -2])
 # Initialize the root Node. Parameters of the simulation are best modified on this line.

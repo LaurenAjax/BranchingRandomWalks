@@ -97,6 +97,7 @@ class Node:
             # For each expected child:
                 bearing = random.random() * math.pi * 2
                 # Generate a random angle for the new node's bearing.
+                bearing = [math.cos(bearing), math.sin(bearing)]
                 Node(arr_sum(bearing, self.pos), bearing, self.propogation_func, self.density_func, next_gen_ref, 1)
                 # Create a new Node with:
                 #   An initial position.
@@ -156,7 +157,7 @@ def dB(s, gen, pop_arr):
             density += 1
     return 1 / (1 + pow(math.e, .25*(10 - density)))
 
-living_gen = [Node([0,0], [0,0], pB, dA, [], 0)]
+living_gen = [Node([0,0], [0,0], pB, dB, [], 0)]
 # Define the structure of the Node, with initial location, bearing, propogation function, density function, array of those within this generation, and the initial generation number
 
 gens = 15
