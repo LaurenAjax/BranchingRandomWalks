@@ -1,6 +1,4 @@
 import matplotlib.pyplot as plt
-from matplotlib.collections import LineCollection
-import numpy as np
 import random
 import math
 
@@ -100,7 +98,7 @@ def build_gen(cur_gen):
             # a list of all the parent's kids
             parent_gen = parent_node.gen
             # the parent's generation
-            if parent_gen < 4:
+            if parent_gen < 0:
                 for i in range(parent_node.num_kids):
                     kid_node = generate_node(parent_node, parent_x, parent_y, parent_gen, 1, 360)
                     # generates a node with a random angle
