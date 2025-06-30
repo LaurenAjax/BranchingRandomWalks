@@ -90,7 +90,7 @@ def arr_sum(arrA, arrB):
 class Node:
     def __init__(self, loc, theta, gen, par, stepLen, dF, cPF, rF, pF):
         self.position = loc
-        self.bearing = theta
+        self.bearing = (theta + math.pi) % (2 * math.pi) - math.pi
         self.generation = gen
         self.parent = par
         self.children = []
@@ -99,7 +99,7 @@ class Node:
         self.childPopFunc = cPF
         self.radius = rF
         self.probability = pF
-        self.spread = 30
+        self.spread = 5
         
     def get_cousins(self):
         """Get a 2D array of all cousins of this Node.
@@ -129,6 +129,12 @@ class Node:
             arr.append(self)
 
     def propogate_me(self):
+        if self.parent is None:
+            for i in range(10):
+                angle = math.pi / 5 * i
+                bearing = [math.cos(angle), math.sin(angle)]
+                self.children.append(Node(arr_sum(bearing, self.position), angle, self.generation + 1, self, self.stepSize, self.densityFunc, self.childPopFunc, self.radius, self.probability))
+            return
         cousins = self.get_cousins()
         onceRem = [[]]
         if self.parent is not None:
@@ -141,11 +147,14 @@ class Node:
                 r = self.radius(self.generation, degree)
                 if clamped(distBetween(self.position, cousin.position), self.stepSize - r, self.stepSize + r):
                     get_angles(self.position, cousin.position, self.stepSize, r, self.probability(self.generation, degree), regions)
-        if self.bearing >= 0:
-            true_region = [[-math.pi, self.bearing - math.pi, 1], [self.bearing, math.pi, 1]]
-        else:
-            true_region = [[self.bearing, self.bearing + math.pi, 1]]
+        if self.bearing >= (math.pi / 2):
+            true_region = [[-math.pi, self.bearing - 3 * math.pi / 2, 1], [self.bearing - math.pi / 2, math.pi, 1]]
+
+        elif self.bearing <= (-1 * math.pi / 2):
+            true_region = [[-math.pi, self.bearing + math.pi / 2, 1], [self.bearing + (3 * math.pi / 2), math.pi, 1]]
             
+        else:
+            true_region = [[self.bearing - math.pi / 2, self.bearing + math.pi / 2, 1]]
         for region in regions:
             j = 0
             while (j < len(true_region)) and (true_region[j][1] < region[1]):
@@ -163,15 +172,20 @@ class Node:
             if (j < len(true_region)) & (region[1] > region[0]):
                 if true_region[j][1] == region[1]:
                     true_region[j][2] *= region[2]
-                else:
+                elif (region[0] > true_region[j][0]):
                     upper = true_region[j][1]
                     true_region[j][1] = region[1]
                     true_region.insert(j + 1, [region[1], upper, true_region[j][2]])
                     true_region[j][2] *= region[2]
+        # for true in true_region:
+        #     if true[0] > true[1]:
+        #         print("Uh oh")
+        #         print(true)
         scale = 0
         probability = []
         for region in true_region:
             prob = (region[1] - region[0]) * region[2] / math.pi 
+            # print("Prob 1:",prob)
             probability.append(prob)
             scale += prob
         # print("next")
@@ -253,86 +267,89 @@ def dA(s, pop):
     for degree in range(len(pop)):
         for cousin in pop[degree]:
             density += 1 / (1 + pow(distBetween(s.position, cousin.position), 2))
-    return 1 / (1 + pow(math.e, .25*(10 - density)))
+    return 1 / (1 + math.exp(.25*(10 - density)))
 
 def cA(s, gen, den):
     return 2
 
 def rA(gen, deg):
-    return 1 - gen * 0.1
+    return pow(0.9, deg * gen)
 
 def pA(gen, deg):
     # return 0.9 - deg * 0.1
-    return 0.9
+    return max(0.9 - 0.1 * deg, 0.1)
 
 
 root = Node([0,0], 0, 0, None, 1, dA, cA, rA, pA)
 
 gens = 10
 # Set the number of generations to run for
-plot.figure(figsize=(6,6))
+# plot.figure(1, figsize=(6,6))
 # Set the dimensions of the output window to 6 by 6.
 
-root.run_gens(gens)
-
-root.plot_singular_path()
-
-granularity = 360
-# Define the granularity of the circle (The higher, the more accurate).
-for j in range(1, math.ceil(gens + 1)):
-# For each value between 1 and the longest path of a Node: 
-    circ_path = [[], []]
-    # Initialize a path array.
-    for i in range(granularity):
-    # For each i in the range of granularity:
-        circ_path[0].append(j * math.cos(math.radians(360 * i / granularity)))
-        # Append the x coordinate of a circle with radius j at angle i * 2pi / granularity to the array.
-        circ_path[1].append(j * math.sin(math.radians(360 * i / granularity)))
-        # Append the y coordinate of a circle with radius j at angle i * 2pi / granularity to the array.
-    circ_path[0].append(j)
-    # Close the circular path by appending j to the x coordinate array.
-    circ_path[1].append(0)
-    # Close the circular path by appending 0 to the y coordinate array.
-    if j % 5 == 0:
-    # If the radius is a multiple of 5: 
-        plot.plot(circ_path[0], circ_path[1], color = (0, 0, 0, 1))
-        # Plot a green circle.
-    else:
-    # Otherwise:
-        plot.plot(circ_path[0], circ_path[1], color = (.5, .5, .5, 1))
-        # Plot a blue circle.
-plot.plot([0], [0], 'o', color = (0, 1, 0, 1))
-# Plot a green dot in the center.
-
 # EXPERIMENTAL BELOW
-# for i in range(gens):
-#     plot.subplot(2,3,i + 1)
-#     root.run_gens(i, last=i-1)
-#     root.plot_singular_path()
-#     granularity = 360
-#     # Define the granularity of the circle (The higher, the more accurate).
-#     for j in range(1, math.ceil(gens + 1)):
-#     # For each value between 1 and the longest path of a Node: 
-#         circ_path = [[], []]
-#         # Initialize a path array.
-#         for i in range(granularity):
-#         # For each i in the range of granularity:
-#             circ_path[0].append(j * math.cos(math.radians(360 * i / granularity)))
-#             # Append the x coordinate of a circle with radius j at angle i * 2pi / granularity to the array.
-#             circ_path[1].append(j * math.sin(math.radians(360 * i / granularity)))
-#             # Append the y coordinate of a circle with radius j at angle i * 2pi / granularity to the array.
-#         circ_path[0].append(j)
-#         # Close the circular path by appending j to the x coordinate array.
-#         circ_path[1].append(0)
-#         # Close the circular path by appending 0 to the y coordinate array.
-#         if j % 5 == 0:
-#         # If the radius is a multiple of 5: 
-#             plot.plot(circ_path[0], circ_path[1], color = (0, 0, 0, 1))
-#             # Plot a green circle.
-#         else:
-#         # Otherwise:
-#             plot.plot(circ_path[0], circ_path[1], color = (.5, .5, .5, 1))
-#             # Plot a blue circle.
-#     plot.plot([0], [0], 'o', color = (0, 0, 0, 1))
+# 
+plot.figure(2, figsize=(20,6))
+for i in range(gens):
+    plot.subplot(2,5,i + 1)
+    print("Running gen", i+1, "/", gens)
+    root.propogate_descendants(i)
+    root.plot_singular_path()
+    granularity = 360
+    # Define the granularity of the circle (The higher, the more accurate).
+    for j in range(1, math.ceil(gens + 1)):
+    # For each value between 1 and the longest path of a Node: 
+        circ_path = [[], []]
+        # Initialize a path array.
+        for i in range(granularity):
+        # For each i in the range of granularity:
+            circ_path[0].append(j * math.cos(math.radians(360 * i / granularity)))
+            # Append the x coordinate of a circle with radius j at angle i * 2pi / granularity to the array.
+            circ_path[1].append(j * math.sin(math.radians(360 * i / granularity)))
+            # Append the y coordinate of a circle with radius j at angle i * 2pi / granularity to the array.
+        circ_path[0].append(j)
+        # Close the circular path by appending j to the x coordinate array.
+        circ_path[1].append(0)
+        # Close the circular path by appending 0 to the y coordinate array.
+        if j % 5 == 0:
+        # If the radius is a multiple of 5: 
+            plot.plot(circ_path[0], circ_path[1], color = (0, 0, 0, 1))
+            # Plot a green circle.
+        else:
+        # Otherwise:
+            plot.plot(circ_path[0], circ_path[1], color = (.5, .5, .5, 1))
+            # Plot a blue circle.
+    plot.plot([0], [0], 'o', color = (0, 0, 0, 1))
+
+# root.plot_singular_path()
+
+# granularity = 360
+# # Define the granularity of the circle (The higher, the more accurate).
+# for j in range(1, math.ceil(gens + 1)):
+# # For each value between 1 and the longest path of a Node: 
+#     circ_path = [[], []]
+#     # Initialize a path array.
+#     for i in range(granularity):
+#     # For each i in the range of granularity:
+#         circ_path[0].append(j * math.cos(math.radians(360 * i / granularity)))
+#         # Append the x coordinate of a circle with radius j at angle i * 2pi / granularity to the array.
+#         circ_path[1].append(j * math.sin(math.radians(360 * i / granularity)))
+#         # Append the y coordinate of a circle with radius j at angle i * 2pi / granularity to the array.
+#     circ_path[0].append(j)
+#     # Close the circular path by appending j to the x coordinate array.
+#     circ_path[1].append(0)
+#     # Close the circular path by appending 0 to the y coordinate array.
+#     if j % 5 == 0:
+#     # If the radius is a multiple of 5: 
+#         plot.plot(circ_path[0], circ_path[1], color = (0, 0, 0, 1))
+#         # Plot a green circle.
+#     else:
+#     # Otherwise:
+#         plot.plot(circ_path[0], circ_path[1], color = (.5, .5, .5, 1))
+#         # Plot a blue circle.
+# plot.plot([0], [0], 'o', color = (0, 1, 0, 1))
+# # Plot a green dot in the center.
+
+
 
 plot.show()
