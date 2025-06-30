@@ -88,7 +88,7 @@ def arr_sum(arrA, arrB):
     return output
 
 class Node:
-    def __init__(self, loc, theta, gen, par, stepLen, dF, cPF, rF, pF):
+    def __init__(self, loc, theta, gen, par, stepLen, dF, cPF, rF, pF, spr, dev):
         self.position = loc
         self.bearing = (theta + math.pi) % (2 * math.pi) - math.pi
         self.generation = gen
@@ -99,7 +99,8 @@ class Node:
         self.childPopFunc = cPF
         self.radius = rF
         self.probability = pF
-        self.spread = 5
+        self.spread = spr
+        self.deviation = dev
         
     def get_cousins(self):
         """Get a 2D array of all cousins of this Node.
@@ -131,14 +132,13 @@ class Node:
     def propogate_me(self):
         if self.parent is None:
             for i in range(10):
-                angle = math.pi / 5 * i
+                angle = random.random() * math.pi * 2
                 bearing = [math.cos(angle), math.sin(angle)]
-                self.children.append(Node(arr_sum(bearing, self.position), angle, self.generation + 1, self, self.stepSize, self.densityFunc, self.childPopFunc, self.radius, self.probability))
+                self.children.append(Node(arr_sum(bearing, self.position), angle, self.generation + 1, self, self.stepSize, self.densityFunc, self.childPopFunc, self.radius, self.probability, self.spread, self.deviation))
             return
         cousins = self.get_cousins()
         onceRem = [[]]
-        if self.parent is not None:
-            onceRem = self.parent.get_cousins()
+        onceRem = self.parent.get_cousins()
         density = self.densityFunc(self, onceRem)
         child_count = self.childPopFunc(self, self.generation, density)
         regions = []
@@ -147,14 +147,14 @@ class Node:
                 r = self.radius(self.generation, degree)
                 if clamped(distBetween(self.position, cousin.position), self.stepSize - r, self.stepSize + r):
                     get_angles(self.position, cousin.position, self.stepSize, r, self.probability(self.generation, degree), regions)
-        if self.bearing >= (math.pi / 2):
-            true_region = [[-math.pi, self.bearing - 3 * math.pi / 2, 1], [self.bearing - math.pi / 2, math.pi, 1]]
+        if self.bearing >= (math.pi - math.radians(self.spread)):
+            true_region = [[-math.pi, self.bearing - 2 *math.pi + math.radians(self.spread), 1], [self.bearing - math.radians(self.spread), math.pi, 1]]
 
-        elif self.bearing <= (-1 * math.pi / 2):
-            true_region = [[-math.pi, self.bearing + math.pi / 2, 1], [self.bearing + (3 * math.pi / 2), math.pi, 1]]
+        elif self.bearing <= (math.radians(self.spread) - math.pi):
+            true_region = [[-math.pi, self.bearing + math.radians(self.spread), 1], [self.bearing + math.pi * 2 - math.radians(self.spread), math.pi, 1]]
             
         else:
-            true_region = [[self.bearing - math.pi / 2, self.bearing + math.pi / 2, 1]]
+            true_region = [[self.bearing - math.radians(self.spread), self.bearing + math.radians(self.spread), 1]]
         for region in regions:
             j = 0
             while (j < len(true_region)) and (true_region[j][1] < region[1]):
@@ -199,12 +199,12 @@ class Node:
             i += 1
         angle = (random.random() * (true_region[i][1] - true_region[i][0])) + true_region[i][0]
         bearing = [math.cos(angle), math.sin(angle)]
-        self.children.append(Node(arr_sum(bearing, self.position), angle, self.generation + 1, self, self.stepSize, self.densityFunc, self.childPopFunc, self.radius, self.probability))
+        self.children.append(Node(arr_sum(bearing, self.position), angle, self.generation + 1, self, self.stepSize, self.densityFunc, self.childPopFunc, self.radius, self.probability, self.spread, self.deviation))
         for i in range(1, child_count):
-            next_angle = angle + (random.random() * 2 - 1) * math.radians(self.spread)
+            next_angle = angle + (random.random() * 2 - 1) * math.radians(self.deviation)
             next_angle = clamp(next_angle, self.bearing - math.pi / 2, self.bearing - math.pi / 2) # No clue how to do this right
             bearing = [math.cos(next_angle), math.sin(next_angle)]
-            self.children.append(Node(arr_sum(bearing, self.position), next_angle, self.generation + 1, self, self.stepSize, self.densityFunc, self.childPopFunc, self.radius, self.probability))
+            self.children.append(Node(arr_sum(bearing, self.position), next_angle, self.generation + 1, self, self.stepSize, self.densityFunc, self.childPopFunc, self.radius, self.probability, self.spread, self.deviation))
 
     def propogate_descendants(self, num):
         if num == 0:
@@ -280,7 +280,7 @@ def pA(gen, deg):
     return max(0.9 - 0.1 * deg, 0.1)
 
 
-root = Node([0,0], 0, 0, None, 1, dA, cA, rA, pA)
+root = Node([0,0], 0, 0, None, 1, dA, cA, rA, pA, 30, 5)
 
 gens = 10
 # Set the number of generations to run for
