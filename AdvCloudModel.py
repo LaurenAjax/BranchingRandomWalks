@@ -7,7 +7,7 @@ import functools as ft
 def get_angles(source, target, sRad, tRad, probability, rangeArr):
     d = distBetween(source, target)
     l = (pow(sRad, 2) - pow(tRad, 2) + pow(d, 2)) / (2 * d)
-    h = math.sqrt(pow(sRad, 2)-l*l)
+    h = math.sqrt(sRad*sRad-l*l)
     sharedX = l / d * (target[0]-source[0])
     sharedY = l / d * (target[1]-source[1])
     pmX = h / d * (target[1]-source[1])
@@ -21,7 +21,7 @@ def get_angles(source, target, sRad, tRad, probability, rangeArr):
         rangeArr.append([low, high, probability])
 
 def clamped(a, b, c):
-    return (a >= b) & (a < c)
+    return (a > b) & (a < c)
 
 def clamp(a, b, c):
     # if b > c:
@@ -269,21 +269,42 @@ def dA(s, pop):
     return 1 / (1 + math.exp(.25*(10 - density)))
 
 def cA(s, gen, den):
-    if den == 0:
-        return 10
+    if gen < 3:
+        return 4
     return 2
 
-def rA(gen, deg):
-    return pow(0.9, deg * gen)
+def cB(s, gen, den):
+    """A defined propogation function.
+    
+    Returns that a random number of chihldren are expected based on the density."""
+    if gen < 3:
+        return 4
+    if den > 0.5:
+        return random.randint(0, 2)
+    return random.randint(2, 5)
 
-def pA(gen, deg):
-    # return 0.9 - deg * 0.1
-    return max(0.9 - 0.1 * deg, 0.1)
+def cC(s, gen, den):
+    """A defined propogation function.
+    
+    Returns that a random number of chihldren are expected based on the density."""
+    return 2
+
+def rA(n, k):
+    if k * n >= 20:
+        return 0
+    return pow(0.9, k * n)
+
+def rB(n, k):
+    return pow(0.9, n) * k
+
+def pA(n, k):
+    # return 0.9 - k * 0.1
+    return max(0.9 - 0.1 * k, 0.1)
 
 
-root = Node([0,0], 0, 0, None, 1, dA, cA, rA, pA, 30, 5)
+root = Node([0,0], 0, 0, None, 1, dA, cA, rA, pA, 30, 10)
 
-gens = 15
+gens = 10
 # Set the number of generations to run for
 # plot.figure(1, figsize=(6,6))
 # Set the dimensions of the output window to 6 by 6.
@@ -322,7 +343,7 @@ gens = 15
 #             # Plot a blue circle.
 #     plot.plot([0], [0], 'o', color = (0, 0, 0, 1))
 
-root.run_gens(15)
+root.run_gens(gens)
 
 root.plot_singular_path()
 
