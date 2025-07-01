@@ -65,7 +65,7 @@ class Node:
 
 root = Node(None, 0, 0, 0, 2, 0)
 
-def generate_node(parent_node, parent_x, parent_y, parent_gen, lower_bound, upper_bound):
+def generate_node(parent_node, parent_x, parent_y, parent_gen, lower_bound, upper_bound, count):
     angle = random.randint(lower_bound, upper_bound)
     # gets an angle within the given bounds
     x = parent_x + math.cos(math.radians(angle))
@@ -73,7 +73,7 @@ def generate_node(parent_node, parent_x, parent_y, parent_gen, lower_bound, uppe
     y = parent_y + math.sin(math.radians(angle))
     # determines the y-coordinate of a point at the angle from the parent and distance 1
     if parent_gen < 9:
-        return Node(parent_node, angle, x, y, 2, parent_gen + 1)
+        return Node(parent_node, angle, x, y, count, parent_gen + 1)
         # returns a node that will have two kids
     else:
         return Node(parent_node, angle, x, y, 0, parent_gen + 1)
@@ -98,9 +98,9 @@ def build_gen(cur_gen):
             # a list of all the parent's kids
             parent_gen = parent_node.gen
             # the parent's generation
-            if parent_gen < 0:
+            if parent_gen < 4:
                 for i in range(parent_node.num_kids):
-                    kid_node = generate_node(parent_node, parent_x, parent_y, parent_gen, 1, 360)
+                    kid_node = generate_node(parent_node, parent_x, parent_y, parent_gen, 1, 360, 2)
                     # generates a node with a random angle
                     parent_next.append(kid_node)
                     # adds the node to its parent's list of kids
@@ -109,7 +109,7 @@ def build_gen(cur_gen):
             else:
                 for i in range(parent_node.num_kids):
                     if len(next_gen) == 0 and i == 0:
-                        kid_node = generate_node(parent_node, parent_x, parent_y, parent_gen, parent_node.angle - 85, parent_node.angle + 85)
+                        kid_node = generate_node(parent_node, parent_x, parent_y, parent_gen, parent_node.angle - 85, parent_node.angle + 85, 2)
                         # generates a node with an angle within 170 degrees of the parent's angle
                         parent_next.append(kid_node)
                         # adds the node to its parent's list of kids
@@ -132,7 +132,7 @@ def build_gen(cur_gen):
                         for cousin_node in firstborn:
                             distance = math.sqrt((kid_node.x_coord - cousin_node.x_coord)**2 + (kid_node.y_coord - cousin_node.y_coord)**2)
                             # calculates the distance between the cousin and the node
-                            if distance < 2 * 0.9**kid_node.removed(cousin_node):
+                            if distance < 0.9**(kid_node.removed(cousin_node) * kid_node.gen):
                                 kid_node.change_node_position()
                                 # changes the position of the node to hopefully distance it from the cousin
                         loop = 0
@@ -145,7 +145,7 @@ def build_gen(cur_gen):
                             for cousin_node in firstborn:
                                 distance = math.sqrt((kid_node.x_coord - cousin_node.x_coord)**2 + (kid_node.y_coord - cousin_node.y_coord)**2)
                                 # calculates the distance between the cousin and the node
-                                if distance < 2 * 0.9**kid_node.removed(cousin_node):
+                                if distance < 0.9**(kid_node.removed(cousin_node) * kid_node.gen):
                                     kid_node.change_node_position()
                                     # changes the position of the node to hopefully distance it from the cousin
                         parent_next.append(kid_node)
@@ -154,7 +154,7 @@ def build_gen(cur_gen):
                         # adds the node to the list of kids in this generation
                         firstborn.append(kid_node)
                     else:
-                        kid_node = generate_node(parent_node, parent_x, parent_y, parent_gen, parent_next[0].angle - 5, parent_next[0].angle + 5)
+                        kid_node = generate_node(parent_node, parent_x, parent_y, parent_gen, parent_next[0].angle - 5, parent_next[0].angle + 5, 2)
                         # generates an angle within 10 degrees of the eldest sibling's angle
                         parent_next.append(kid_node)
                         # adds the node to its parent's list of kids
