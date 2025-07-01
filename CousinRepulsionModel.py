@@ -72,7 +72,7 @@ def generate_node(parent_node, parent_x, parent_y, parent_gen, lower_bound, uppe
     # determines the x-coordinate of a point at the angle from the parent and distance 1
     y = parent_y + math.sin(math.radians(angle))
     # determines the y-coordinate of a point at the angle from the parent and distance 1
-    if parent_gen < 9:
+    if parent_gen < 29:
         return Node(parent_node, angle, x, y, count, parent_gen + 1)
         # returns a node that will have two kids
     else:
@@ -98,7 +98,7 @@ def build_gen(cur_gen):
             # a list of all the parent's kids
             parent_gen = parent_node.gen
             # the parent's generation
-            if parent_gen < 4:
+            if parent_gen < 9:
                 for i in range(parent_node.num_kids):
                     kid_node = generate_node(parent_node, parent_x, parent_y, parent_gen, 1, 360, 2)
                     # generates a node with a random angle
@@ -123,7 +123,7 @@ def build_gen(cur_gen):
                         # determines the x-coordinate of a point at the angle from the parent and distance 1
                         kid_y = parent_y + math.sin(math.radians(kid_angle))
                         # determines the y-coordinate of a point at the angle from the parent and distance 1
-                        if parent_node.gen < 9:
+                        if parent_node.gen < 29:
                             kid_node = Node(parent_node, kid_angle, kid_x, kid_y, 2, parent_gen + 1)
                             # generates a node that will have two kids
                         else:
@@ -160,6 +160,7 @@ def build_gen(cur_gen):
                         # adds the node to its parent's list of kids
                         next_gen.append(kid_node)
                         # adds the node to the list of kids in this generation
+        print("Gen " + str(next_gen[0].gen) + " Built!")
         build_gen(next_gen)
         # starts the process again for the next generation
     else:

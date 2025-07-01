@@ -23,23 +23,6 @@ class Node:
     def build_plot(self):
         plt.plot(self.x_coord, self.y_coord, 'o', color = (0, 0, 1, 0.1))
         # plots the ending nodes
-        x_array = [self.x_coord]
-        # creates a list of x-coordinates this node has traveled
-        y_array = [self.y_coord]
-        # creates a list of y coordinates this node has traveled
-        cur_parent = self.parent
-        # the current parent node
-        while cur_parent is not None:
-            plt.plot(cur_parent.x_coord, cur_parent.y_coord, 'o', color = (1, 0, 0, 0.1))
-            # plots the parent node
-            x_array.append(cur_parent.x_coord)
-            # adds the parent node's x-coordinate to the array
-            y_array.append(cur_parent.y_coord)
-            # adds the parent node's y-coordinate to the array
-            cur_parent = cur_parent.parent
-            # moves the plot one generation back
-        plt.plot(x_array, y_array, color = (0, 0, 0, 0.1))
-        # plots the path in its entirety
     
     def removed(self, other):
         if(self.gen != other.gen):
@@ -83,7 +66,7 @@ def generate_node(parent_node, parent_x, parent_y, parent_gen, lower_bound, uppe
     # determines the x-coordinate of a point at the angle from the parent and distance 1
     y = parent_y + steps * math.sin(math.radians(angle))
     # determines the y-coordinate of a point at the angle from the parent and distance 1
-    if parent_gen < 19:
+    if parent_gen < 29:
         return Node(parent_node, angle, x, y, steps, 2, parent_gen + 1)
         # returns a node that will have two kids
     else:
@@ -171,7 +154,7 @@ def build_gen(cur_gen):
                         # determines the x-coordinate of a point at the angle from the parent and distance 1
                         kid_y = parent_y + math.sin(math.radians(kid_angle))
                         # determines the y-coordinate of a point at the angle from the parent and distance 1
-                        if parent_node.gen < 19:
+                        if parent_node.gen < 29:
                             kid_node = Node(parent_node, kid_angle, kid_x, kid_y, 1, 2, parent_gen + 1)
                             # generates a node that will have two kids
                         else:
@@ -250,7 +233,7 @@ def build_gen(cur_gen):
                         # adds the node to its parent's list of kids
                         next_gen.append(kid_node)
                         # adds the node to the list of kids in this generation
-        print("Gen Built!")
+        print("Gen " + str(next_gen[0].gen) + " Built!")
         build_gen(next_gen)
         # starts the process again for the next generation
     else:
