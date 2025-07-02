@@ -37,11 +37,13 @@ def clamp(a, b, c):
     return a
 
 def distBetween(a,b):
+    return math.sqrt(distSquared(a, b))
+
+def distSquared(a,b):
     dist = 0
     for i,j in a,b:
-        dist += (i-j) * (i-j)
-    return math.sqrt(dist)
-
+        dist += (i - j) * (i - j)
+    return dist
 def to_unit(arr):
     """Return a unit vector array of an array of numbers.
     
@@ -121,6 +123,26 @@ class Node:
             common_ancestor = uncommon_ancestor.parent
             degree += 1
         return cousins
+    
+    def get_child_cousins(self):
+        """Get a 2D array of all cousins of the children of this Node.
+        
+        If you access output[i], it will be an array of ith cousins.
+        
+        Fun fact, siblings can be referred to as 0th cousins."""
+        cousins = [[]]
+        uncommon_ancestor = self
+        common_ancestor = uncommon_ancestor.parent
+        degree = 1
+        while common_ancestor is not None:
+            cousins.append([])
+            for nth_uncle in common_ancestor.children:
+                if nth_uncle is not uncommon_ancestor:
+                    nth_uncle.get_living(cousins[degree], degree + 1)
+            uncommon_ancestor = common_ancestor
+            common_ancestor = uncommon_ancestor.parent
+            degree += 1
+        return cousins
                     
     def get_living(self, arr, degree):
         if degree > 0:
@@ -130,30 +152,29 @@ class Node:
             arr.append(self)
 
     def propogate_me(self):
+        cousins = self.get_child_cousins()
+        onceRem = self.get_cousins()
         if self.parent is None:
-            for i in range(self.childPopFunc(self, self.generation, 0)):
+            for i in range(self.childPopFunc(self, self.generation, 0, onceRem)):
                 angle = random.random() * math.pi * 2
                 bearing = [math.cos(angle), math.sin(angle)]
                 self.children.append(Node(arr_sum(bearing, self.position), angle, self.generation + 1, self, self.stepSize, self.densityFunc, self.childPopFunc, self.radius, self.probability, self.spread, self.deviation))
             return
-        cousins = self.get_cousins()
-        onceRem = self.parent.get_cousins()
         density = self.densityFunc(self, onceRem)
-        child_count = self.childPopFunc(self, self.generation, density)
+        spread = self.spread / 180 * math.acos(-density)
+        child_count = self.childPopFunc(self, self.generation, density, onceRem)
         regions = []
         for degree in range(len(cousins)):
             for cousin in cousins[degree]:
-                r = self.radius(self.generation, degree)
+                r = self.radius(self.generation, degree, density, onceRem)
                 if clamped(distBetween(self.position, cousin.position), self.stepSize - r, self.stepSize + r):
-                    get_angles(self.position, cousin.position, self.stepSize, r, self.probability(self.generation, degree), regions)
-        if self.bearing >= (math.pi - math.radians(self.spread)):
-            true_region = [[-math.pi, self.bearing - 2 *math.pi + math.radians(self.spread), 1], [self.bearing - math.radians(self.spread), math.pi, 1]]
-
-        elif self.bearing <= (math.radians(self.spread) - math.pi):
-            true_region = [[-math.pi, self.bearing + math.radians(self.spread), 1], [self.bearing + math.pi * 2 - math.radians(self.spread), math.pi, 1]]
-            
+                    get_angles(self.position, cousin.position, self.stepSize, r, self.probability(self.generation, degree, density, cousins), regions)
+        if self.bearing >= (math.pi - spread):
+            true_region = [[-math.pi, self.bearing - 2 * math.pi + spread, 1], [self.bearing - spread, math.pi, 1]]
+        elif self.bearing <= (spread - math.pi):
+            true_region = [[-math.pi, self.bearing + spread, 1], [self.bearing + math.pi * 2 - spread, math.pi, 1]]
         else:
-            true_region = [[self.bearing - math.radians(self.spread), self.bearing + math.radians(self.spread), 1]]
+            true_region = [[self.bearing - spread, self.bearing + spread, 1]]
         for region in regions:
             j = 0
             while (j < len(true_region)) and (true_region[j][1] < region[1]):
@@ -235,14 +256,14 @@ class Node:
         """Get this Node's density."""
         return self.densityFunc(self, self.generation, onceRem)
     
-    def plot_singular_path_helper(self, arr):
+    def plot_trace_path_helper(self, arr):
         """Plot the path of this Node.
         
         Keyword arguments:
         arr -- a record of this Node's parent's location"""
         for child in self.children:
         # For each child of this Node:
-            child.plot_singular_path_helper(self.position)
+            child.plot_trace_path_helper(self.position)
             # Recursively call the helper function with this Node's true position array.
         plot.plot([arr[0], self.position[0]], [arr[1], self.position[1]], color=(0, 0, 0, .1))
         # Plot the line between this Node and its parent.
@@ -251,11 +272,11 @@ class Node:
             plot.plot([self.position[0]], [self.position[1]], 'o', color=(1, 0, 0, .1))
             # Plot the position of this Node as a dot.
     
-    def plot_singular_path(self):
+    def plot_trace_path(self):
         """Plot the path of this Node."""
         for child in self.children:
         # For each child of the Node:
-            child.plot_singular_path_helper(self.position)
+            child.plot_trace_path_helper(self.position)
             # Call the helper function with this Node's true position array.
 
 def dA(s, pop):
@@ -265,15 +286,15 @@ def dA(s, pop):
     density = 0
     for degree in range(len(pop)):
         for cousin in pop[degree]:
-            density += 1 / (1 + pow(distBetween(s.position, cousin.position), 2))
+            density += 1 / (1 + distSquared(s.position, cousin.position))
     return 1 / (1 + math.exp(.25*(10 - density)))
 
-def cA(s, gen, den):
-    if gen < 3:
-        return 4
+def cA(s, gen, den, pop):
+    if gen < 1:
+        return 10
     return 2
 
-def cB(s, gen, den):
+def cB(s, gen, den, pop):
     """A defined propogation function.
     
     Returns that a random number of chihldren are expected based on the density."""
@@ -283,28 +304,29 @@ def cB(s, gen, den):
         return random.randint(0, 2)
     return random.randint(2, 5)
 
-def cC(s, gen, den):
+def cC(s, gen, den, pop):
     """A defined propogation function.
     
     Returns that a random number of chihldren are expected based on the density."""
     return 2
 
-def rA(n, k):
-    if k * n >= 20:
+def rA(n, k, den, pop):
+    if k >= 20:
         return 0
-    return pow(0.9, k * n)
+    return pow(0.9, k)
 
-def rB(n, k):
+def rB(n, k, den, pop):
     return pow(0.9, n) * k
 
-def pA(n, k):
+def pA(n, k, den, pop):
     # return 0.9 - k * 0.1
-    return max(0.9 - 0.1 * k, 0.1)
+    # return max(0.9 - 0.1 * k, 0.1)
+    return .1
 
 
-root = Node([0,0], 0, 0, None, 1, dA, cA, rA, pA, 30, 10)
+root = Node([0,0], 0, 0, None, 1, dA, cA, rA, pA, 60, 5)
 
-gens = 10
+gens = 15
 # Set the number of generations to run for
 # plot.figure(1, figsize=(6,6))
 # Set the dimensions of the output window to 6 by 6.
@@ -316,7 +338,7 @@ gens = 10
 #     plot.subplot(2,5,i + 1)
 #     print("Running gen", i+1, "/", gens)
 #     root.propogate_descendants(i)
-#     root.plot_singular_path()
+#     root.plot_trace_path()
 #     granularity = 360
 #     # Define the granularity of the circle (The higher, the more accurate).
 #     for j in range(1, math.ceil(gens + 1)):
@@ -345,7 +367,7 @@ gens = 10
 
 root.run_gens(gens)
 
-root.plot_singular_path()
+root.plot_trace_path()
 
 granularity = 360
 # Define the granularity of the circle (The higher, the more accurate).
