@@ -36,6 +36,17 @@ def clamp(a, b, c):
     #     return c
     return a
 
+def lerp(a, b, t):
+    return a * (1 - t) + b * t
+
+def lerp_arr(a, b, min, max, delta):
+    output = []
+    t = min
+    while t <= max:
+        output.append(lerp(a, b, t))
+        t += delta
+    return output
+
 def distBetween(a,b):
     return math.sqrt(distSquared(a, b))
 
@@ -90,7 +101,7 @@ def arr_sum(arrA, arrB):
     return output
 
 class Node:
-    def __init__(self, loc, theta, gen, par, stepLen, dF, cPF, rF, pF, spr, dev):
+    def __init__(self, loc, theta, gen, par, stepLen, dF, cPF, rF, pF, spr, dev, alp):
         self.position = loc
         self.bearing = (theta + math.pi) % (2 * math.pi) - math.pi
         self.generation = gen
@@ -103,6 +114,7 @@ class Node:
         self.probability = pF
         self.spread = spr
         self.deviation = dev
+        self.alpha = alp
         
     def get_cousins(self):
         """Get a 2D array of all cousins of this Node.
@@ -154,21 +166,21 @@ class Node:
     def propogate_me(self):
         cousins = self.get_child_cousins()
         onceRem = self.get_cousins()
-        if self.parent is None:
+        if self.generation < 1:
             for i in range(self.childPopFunc(self, self.generation, 0, onceRem)):
                 angle = random.random() * math.pi * 2
                 bearing = [math.cos(angle), math.sin(angle)]
-                self.children.append(Node(arr_sum(bearing, self.position), angle, self.generation + 1, self, self.stepSize, self.densityFunc, self.childPopFunc, self.radius, self.probability, self.spread, self.deviation))
+                self.children.append(Node(arr_sum(bearing, self.position), angle, self.generation + 1, self, self.stepSize, self.densityFunc, self.childPopFunc, self.radius, self.probability, self.spread, self.deviation, self.alpha))
             return
         density = self.densityFunc(self, onceRem)
-        spread = self.spread / 180 * math.acos(-density)
+        spread = lerp(self.spread / 180 * math.acos(-density), self.spread, self.alpha)
         child_count = self.childPopFunc(self, self.generation, density, onceRem)
         regions = []
         for degree in range(len(cousins)):
             for cousin in cousins[degree]:
                 r = self.radius(self.generation, degree, density, onceRem)
                 if clamped(distBetween(self.position, cousin.position), self.stepSize - r, self.stepSize + r):
-                    get_angles(self.position, cousin.position, self.stepSize, r, self.probability(self.generation, degree, density, cousins), regions)
+                    get_angles(self.position, cousin.position, self.stepSize, r, lerp(1, self.probability(self.generation, degree, density, cousins), self.alpha), regions)
         if self.bearing >= (math.pi - spread):
             true_region = [[-math.pi, self.bearing - 2 * math.pi + spread, 1], [self.bearing - spread, math.pi, 1]]
         elif self.bearing <= (spread - math.pi):
@@ -219,12 +231,12 @@ class Node:
             i += 1
         angle = (random.random() * (true_region[i][1] - true_region[i][0])) + true_region[i][0]
         bearing = [math.cos(angle), math.sin(angle)]
-        self.children.append(Node(arr_sum(bearing, self.position), angle, self.generation + 1, self, self.stepSize, self.densityFunc, self.childPopFunc, self.radius, self.probability, self.spread, self.deviation))
+        self.children.append(Node(arr_sum(bearing, self.position), angle, self.generation + 1, self, self.stepSize, self.densityFunc, self.childPopFunc, self.radius, self.probability, self.spread, self.deviation, self.alpha))
         for i in range(1, child_count):
             next_angle = angle + (random.random() * 2 - 1) * math.radians(self.deviation)
             next_angle = clamp(next_angle, self.bearing - math.pi / 2, self.bearing - math.pi / 2) # No clue how to do this right
             bearing = [math.cos(next_angle), math.sin(next_angle)]
-            self.children.append(Node(arr_sum(bearing, self.position), next_angle, self.generation + 1, self, self.stepSize, self.densityFunc, self.childPopFunc, self.radius, self.probability, self.spread, self.deviation))
+            self.children.append(Node(arr_sum(bearing, self.position), next_angle, self.generation + 1, self, self.stepSize, self.densityFunc, self.childPopFunc, self.radius, self.probability, self.spread, self.deviation, self.alpha))
 
     def propogate_descendants(self, num):
         if num == 0:
@@ -289,6 +301,28 @@ def dA(s, pop):
             density += 1 / (1 + distSquared(s.position, cousin.position))
     return 1 / (1 + math.exp(.25*(10 - density)))
 
+def dB(s, pop):
+    """A defined density function.
+    
+    Returns the density according to the number of Nodes within 1 unit in the same generation."""
+    density = 0
+    for degree in range(len(pop)):    
+        for cousin in pop[degree]:
+            if distSquared(s.position, cousin.position) < 25:
+                density += 1
+    return 1 / (1 + math.exp(.25*(10 - density)))
+
+def dC(s, pop):
+    """A defined density function.
+    
+    Returns the density according to the number of Nodes within 1 unit in the same generation."""
+    density = 0
+    for degree in range(len(pop)):    
+        for cousin in pop[degree]:
+            if abs(s.position[0]-cousin.position[0]) + abs(s.position[1] - cousin.position[1]) < 5:
+                density += 1
+    return 1 / (1 + math.exp(.25*(10 - density)))
+
 def cA(s, gen, den, pop):
     if gen < 1:
         return 10
@@ -297,18 +331,28 @@ def cA(s, gen, den, pop):
 def cB(s, gen, den, pop):
     """A defined propogation function.
     
-    Returns that a random number of chihldren are expected based on the density."""
-    if gen < 3:
-        return 4
-    if den > 0.5:
-        return random.randint(0, 2)
-    return random.randint(2, 5)
+    Returns that a random number of chihldren are expected based on the density.
+    
+    Expects a density in (0,1) """
+    if gen < 1:
+        return 10
+    return 2 + round(3 * den * random.random())
 
 def cC(s, gen, den, pop):
     """A defined propogation function.
     
     Returns that a random number of chihldren are expected based on the density."""
-    return 2
+    return 3
+
+def cD(s, gen, den, pop):
+    """A defined propogation function.
+    
+    Returns that a random number of chihldren are expected based on the density."""
+    if gen < 1:
+        return 10
+    if den > 0.5:
+        return random.randint(2, 5)
+    return random.randint(0, 2)
 
 def rA(n, k, den, pop):
     if k >= 20:
@@ -324,9 +368,12 @@ def pA(n, k, den, pop):
     return .1
 
 
-root = Node([0,0], 0, 0, None, 1, dA, cA, rA, pA, 60, 5)
+rootParams = [[0,0], 0, 0, None, 1, dC, cA, rB, pA, 90, 5]
+root = Node(*rootParams, 1)
+alphaArr = lerp_arr(0, 1, 0, 1, .125)
+print(alphaArr)
+gens = 10
 
-gens = 15
 # Set the number of generations to run for
 # plot.figure(1, figsize=(6,6))
 # Set the dimensions of the output window to 6 by 6.
