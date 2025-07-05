@@ -15,7 +15,7 @@ def to_unit(arr):
     scale = 0
     output = []
     for i in arr:
-        scale += i*i
+        scale += arr[i]*arr[i]
     scale = math.sqrt(scale)
     if scale > 0.001:
         for j in range(len(arr)):
