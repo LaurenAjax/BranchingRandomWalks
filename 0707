@@ -1,0 +1,156 @@
+import math
+import random
+import matplotlib.pyplot as plt
+
+
+num_gen           = 10
+step_size         = 1
+gen_split_k       = 1
+initial_angle     = math.pi / 2
+num_children      = 5
+pre_k_children    = 100
+repel_strength    = 0.5
+repel_radius      = pow(0.9, num_gen * gen_split_k)
+err               = 1e-6
+max_divergence    = math.pi 
+density_radius    = 2.0 # radius of the repulsive cloud
+density_max = 6 # max within a repulsive cloud (close_neighbors)
+prob_no_kid   = 0.01 # prob of having an agent with no offspring at all
+
+# Initialize
+paths   = [[(0.0, 0.0)]]
+id_info = [(0, None)]  # (generation, parent_id)
+
+for gen in range(num_gen):
+    new_paths   = []
+    new_id_info = []
+
+    gen_pos    = [p[-1] for p in paths]
+    parent_ids = [pid for gen, pid in id_info]
+
+    for parent_i, path in enumerate(paths):
+        last_x, last_y = path[-1]
+
+        # Direction of parent's last step
+        if gen == 0:
+            angle = initial_angle
+        else:
+            dx = last_x - path[-2][0]
+            dy = last_y - path[-2][1]
+            angle = math.atan2(dy, dx)
+
+        # Repulsion from cousins (post-k only)
+        rep_x = 0.0
+        rep_y = 0.0
+        if gen >= gen_split_k:
+            my_parent_i = parent_ids[parent_i]
+            grandparent_i = parent_ids[my_parent_i] if my_parent_i is not None and my_parent_i < len(parent_ids) else None
+
+            for j, (cx, cy) in enumerate(gen_pos):
+                cousin_parent_j = parent_ids[j]
+                grandparent_j = parent_ids[cousin_parent_j] if cousin_parent_j is not None and cousin_parent_j < len(parent_ids) else None
+
+                if (
+                    j != parent_i
+                    and my_parent_i is not None
+                    and cousin_parent_j is not None
+                    and my_parent_i != cousin_parent_j
+                    and grandparent_i is not None
+                    and grandparent_j is not None
+                    and grandparent_i == grandparent_j
+                ):
+                    dx = last_x - cx
+                    dy = last_y - cy
+                    d = math.hypot(dx, dy)
+                    if d < repel_radius:
+                        f = (repel_radius - d) / repel_radius
+                        rep_x += f * dx / (d + err)
+                        rep_y += f * dy / (d + err)
+
+        # Combine base direction and repulsion
+        if gen >= gen_split_k:
+            blended_x = math.cos(angle) + repel_strength * rep_x
+            blended_y = math.sin(angle) + repel_strength * rep_y
+            blended_angle = math.atan2(blended_y, blended_x)
+        else:
+            blended_angle = angle
+
+        # Density-based repulsion (post-k only)
+        if gen >= gen_split_k:
+            close_neighbors = [p for p in gen_pos if math.hypot(p[0] - last_x, p[1] - last_y) < density_radius]
+            if len(close_neighbors) > density_max:
+                if random.random() < prob_no_kid:
+                    continue  # no offspring
+
+        # Decide number of children
+        if gen < gen_split_k:
+            count = pre_k_children
+        else:
+            count = 1 if len(close_neighbors) > density_max else num_children
+
+        if gen < gen_split_k:
+            # PRE-k: symmetric 360 spreading
+            for i in range(count):
+                delta = 2 * math.pi * i / count
+                ang = blended_angle + delta + random.uniform(-0.5, 0.5)
+                nx = last_x + step_size * math.cos(ang)
+                ny = last_y + step_size * math.sin(ang)
+                new_paths.append(path + [(nx, ny)])
+                new_id_info.append((gen + 1, parent_i))
+        else:
+            # POST-k: sibling attraction + limited divergence + varied step
+            shared_sib = blended_angle + random.uniform(-0.1, 0.1)
+            for i in range(count):
+
+                # This ensures the value does not exceed max_divergence in the positive direction,
+                # and the value does not go below -max_divergence in the negative direction.
+                delta = max(-max_divergence, min(max_divergence, 0.28 * (-1 if i == 0 else 1)))
+                ang = shared_sib + delta
+                step = random.uniform(0.8, 1.2)
+                nx = last_x + step * math.cos(ang)
+                ny = last_y + step * math.sin(ang)
+                new_paths.append(path + [(nx, ny)])
+                new_id_info.append((gen + 1, parent_i))
+
+    # Extra cousin repulsion (post-k only)
+    if gen >= gen_split_k:
+        for _ in range(5):
+            for i in range(len(new_paths)):
+                for j in range(i + 1, len(new_paths)):
+                    parent_i = new_id_info[i][1]
+                    parent_j = new_id_info[j][1]
+                    grandparent_i = parent_ids[parent_i] if parent_i is not None and parent_i < len(parent_ids) else None
+                    grandparent_j = parent_ids[parent_j] if parent_j is not None and parent_j < len(parent_ids) else None
+
+                    if (
+                        parent_i is not None
+                        and parent_j is not None
+                        and parent_i != parent_j
+                        and grandparent_i is not None
+                        and grandparent_j is not None
+                        and grandparent_i == grandparent_j
+                    ):
+                        xi, yi = new_paths[i][-1]
+                        xj, yj = new_paths[j][-1]
+                        dx = xi - xj
+                        dy = yi - yj
+                        d = math.hypot(dx, dy)
+                        if err < d < repel_radius - err:
+                            move = (repel_radius - d) / 2
+                            ux = dx / d
+                            uy = dy / d
+                            new_paths[i][-1] = (xi + ux * move, yi + uy * move)
+                            new_paths[j][-1] = (xj - ux * move, yj - uy * move)
+
+    paths, id_info = new_paths, new_id_info
+
+for path in paths:
+    x_coord = [p[0] for p in path]
+    y_coord = [p[1] for p in path]
+    r, g, b = 0,0,0 #random.random(), random.random(), random.random()
+    plt.plot(x_coord, y_coord, color=(r, g, b, 0.2))
+    plt.plot(x_coord[-1], y_coord[-1], 'o', color=(r, g, b, 0.2), markersize=4)
+
+plt.grid()
+plt.axis("equal")
+plt.show()
