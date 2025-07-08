@@ -78,7 +78,7 @@ def generate_node(parent_node, parent_x, parent_y, parent_gen, lower_bound, uppe
         return Node(parent_node, angle, x, y, 0, parent_gen + 1)
 
 def build_gen(cur_gen):
-    if cur_gen[0].num_kids != 0:
+    if cur_gen[0].gen != 10:
         next_gen = []
         firstborn = []
         for parent_node in cur_gen:
@@ -88,8 +88,8 @@ def build_gen(cur_gen):
             parent_num_kids = parent_node.num_kids
             parent_next = parent_node.next
             parent_gen = parent_node.gen
-            upper_bound = parent_angle + 85
-            lower_bound = parent_angle - 85
+            upper_bound = parent_angle + 90
+            lower_bound = parent_angle - 90
             upper_bound_x = parent_x + math.cos(math.radians(upper_bound))
             upper_bound_y = parent_y + math.cos(math.radians(upper_bound))
             lower_bound_x = parent_x + math.cos(math.radians(lower_bound))
@@ -103,33 +103,39 @@ def build_gen(cur_gen):
                     next_gen.append(kid_node)
             else:
                 for i in range(parent_num_kids):
+                    cousin_angles = []
                     kid_node = generate_node(parent_node, parent_x, parent_y, parent_gen, lower_bound, upper_bound)
                     for cousin_node in firstborn:
                         repelled = (10 - kid_node.removed(cousin_node))
                         if math.sqrt((cousin_node.x_coord - kid_node.x_coord)**2 + (cousin_node.y_coord - kid_node.y_coord)**2) < repelled * alpha:
                             if math.sqrt((cousin_node.x_coord - upper_bound_x)**2 + (cousin_node.y_coord - upper_bound_y)**2) > math.sqrt((cousin_node.x_coord - lower_bound_x)**2 + (cousin_node.y_coord - lower_bound_y)**2):
                                 if upper_bound > kid_node.angle + repelled * 2:
-                                    kid_node.change_node_position(kid_node.angle + repelled * 2)
+                                    cousin_angles.append(kid_node.angle + repelled * 2)
                                 else:
-                                    kid_node.change_node_position(upper_bound)
+                                    cousin_angles.append(upper_bound)
                             else: 
                                 if lower_bound < kid_node.angle - repelled * 2:
-                                    kid_node.change_node_position(kid_node.angle - repelled * 2)
+                                    cousin_angles.append(kid_node.angle - repelled * 2)
                                 else:
-                                    kid_node.change_node_position(lower_bound)
+                                    cousin_angles.append(lower_bound)
+                    if len(cousin_angles) != 0:
+                        cousin_angle = sum(cousin_angles) / len(cousin_angles)
+                    else:
+                        cousin_angle = kid_node.angle
                     repelled = 5 * int(4 * kid_node.density(x_coord_list, y_coord_list, beta))
                     if upper_bound - kid_node.angle > kid_node.angle - lower_bound:
                         if upper_bound > kid_node.angle + repelled:
-                            kid_node.change_node_position(kid_node.angle + repelled)
+                            density_angle = kid_node.angle + repelled
                         else: 
-                            kid_node.change_node_position(upper_bound)
+                            density_angle = upper_bound
                     else:
                         if lower_bound < kid_node.angle - repelled:
-                            kid_node.change_node_position(kid_node.angle - repelled)
+                            density_angle = kid_node.angle - repelled
                         else: 
-                            kid_node.change_node_position(lower_bound)
+                            density_angle = lower_bound
                     if kid_node.num_kids != 0:
                         kid_node.change_num_kids(2 + int(4 * kid_node.density(x_coord_list, y_coord_list, beta)))
+                    kid_node.change_node_position(int((cousin_angle * alpha + density_angle * beta)))
                     x_coord_list.append(kid_node.x_coord)
                     y_coord_list.append(kid_node.y_coord)
                     parent_next.append(kid_node)
