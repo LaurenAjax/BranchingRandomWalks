@@ -34,22 +34,13 @@ class Node:
             arr = arr_sum(self.pos, [math.cos(number), math.sin(number)])
             x = arr[0]
             y = arr[1]
-            if self.generation > 5:
-                for auncle in self.parent.children:
-                    dx = auncle.pos[0] - x
-                    dy = auncle.pos[1] - y
-                    if auncle is not self:
-                        if dx * dx + dy * dy < 1:
-                            x = (auncle.pos[0] + x) / 2
-                            y = (auncle.pos[1] + y) / 2
-                            break
             self.children.append(Node([x, y], self, self.generation + 1))
             plot.plot([self.pos[0], self.children[i].pos[0]], [self.pos[1], self.children[i].pos[1]])
         
     def run_gens(self, number):
         for i in range(number):
             self.make_children_helper(i)
-            print("Finished generation",i)
+            print("Finished generation", i + 1)
             
     def f(self):
         return self.generation
