@@ -17,7 +17,7 @@ def arr_sum(first_arr, second_arr):
     output = []
     for i in range(len(first_arr)):
         output.append(first_arr[i] + second_arr[i])
-    return output        
+    return output
 
 class Node:
     def __init__(self, pos, ang, gen, par, steps, pd, sd, a, dF, cF, rF, roF, slF):
