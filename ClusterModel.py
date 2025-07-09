@@ -30,6 +30,7 @@ class Node:
 root = Node(None, 0, 0, 0, 2, 0)
 attraction = 0.025
 # This seems incredibly low, even scalled up by new_gen later.
+# You try scaling it up and see what happens. I chose this after way to much experimentation because I thought it looked best.
 
 def generate_node(parent_node, num_kids, angle, gen):
     x = parent_node.x_coord + math.cos(math.radians(angle))
@@ -47,6 +48,7 @@ def build_gen(cur_gen):
             if parent_node.guide == None:
                 parent_node.guide = random.randint(parent_node.angle - 90, parent_node.angle + 90)
                 # Isn't the node supposed to go in a completely random direction?
+                # This is a me thing. I just think it looks a bit better like this but it can absolutely be changed.
             for cousin_node in cur_gen:
                 if cousin_node.guide == None:
                     dx = parent_node.x_coord - cousin_node.x_coord
