@@ -15,10 +15,11 @@ def arr_sum(first_arr, second_arr):
     return output
 
 class Node:
-    def __init__(self, loc, par):
+    def __init__(self, loc, par, gen):
         self.pos = loc
         self.parent = par
         self.children = []
+        self.generation = gen
     
     def make_children_helper(self, number):
         if number == 0:
@@ -30,7 +31,19 @@ class Node:
     def make_children(self):
         for i in range(2):
             number = random.random() * 2 * math.pi
-            self.children.append(Node(arr_sum(self.pos, [math.cos(number), math.sin(number)]), self))
+            arr = arr_sum(self.pos, [math.cos(number), math.sin(number)])
+            x = arr[0]
+            y = arr[1]
+            if self.generation > 5:
+                for auncle in self.parent.children:
+                    dx = auncle.pos[0] - x
+                    dy = auncle.pos[1] - y
+                    if auncle is not self:
+                        if dx * dx + dy * dy < 1:
+                            x = (auncle.pos[0] + x) / 2
+                            y = (auncle.pos[1] + y) / 2
+                            break
+            self.children.append(Node([x, y], self, self.generation + 1))
             plot.plot([self.pos[0], self.children[i].pos[0]], [self.pos[1], self.children[i].pos[1]])
         
     def run_gens(self, number):
@@ -38,13 +51,13 @@ class Node:
             self.make_children_helper(i)
             print("Finished generation",i)
             
-    def f(self, t):
-        return 2
+    def f(self):
+        return self.generation
 
-root = Node([0, 0], None)
+root = Node([0, 0], None, 0)
 # history = [root]
 
-generations = 20
+generations = 15
 ticks = []
 for i in range(generations * 2 + 1):
     ticks.append(i - generations)
