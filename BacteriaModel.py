@@ -37,14 +37,14 @@ class Node:
         else:
             return distance
 
-    def density(self, x_coord_list, y_coordlist, beta):
+    def density(self, x_coord_list, y_coordlist):
         total = 0
         count = 0
         for x, y in zip(x_coord_list, y_coord_list):
             distance = math.sqrt((self.x_coord - x)**2 + (self.y_coord - y)**2)
-            if distance < beta:
+            if distance < 1:
                 count += 1
-            if distance < 2 * beta:
+            if distance < 2:
                 total += 1
         if total == 0:
             return 0
@@ -107,7 +107,7 @@ def build_gen(cur_gen):
                     kid_node = generate_node(parent_node, parent_x, parent_y, parent_gen, lower_bound, upper_bound)
                     for cousin_node in firstborn:
                         repelled = (10 - kid_node.removed(cousin_node))
-                        if math.sqrt((cousin_node.x_coord - kid_node.x_coord)**2 + (cousin_node.y_coord - kid_node.y_coord)**2) < repelled * alpha:
+                        if math.sqrt((cousin_node.x_coord - kid_node.x_coord)**2 + (cousin_node.y_coord - kid_node.y_coord)**2) < repelled:
                             if math.sqrt((cousin_node.x_coord - upper_bound_x)**2 + (cousin_node.y_coord - upper_bound_y)**2) > math.sqrt((cousin_node.x_coord - lower_bound_x)**2 + (cousin_node.y_coord - lower_bound_y)**2):
                                 if upper_bound > kid_node.angle + repelled * 2:
                                     cousin_angles.append(kid_node.angle + repelled * 2)
@@ -122,7 +122,7 @@ def build_gen(cur_gen):
                         cousin_angle = sum(cousin_angles) / len(cousin_angles)
                     else:
                         cousin_angle = kid_node.angle
-                    repelled = 5 * int(4 * kid_node.density(x_coord_list, y_coord_list, beta))
+                    repelled = 5 * int(4 * kid_node.density(x_coord_list, y_coord_list))
                     if upper_bound - kid_node.angle > kid_node.angle - lower_bound:
                         if upper_bound > kid_node.angle + repelled:
                             density_angle = kid_node.angle + repelled
@@ -134,7 +134,7 @@ def build_gen(cur_gen):
                         else: 
                             density_angle = lower_bound
                     if kid_node.num_kids != 0:
-                        kid_node.change_num_kids(2 + int(4 * kid_node.density(x_coord_list, y_coord_list, beta)))
+                        kid_node.change_num_kids(2 + int(4 * kid_node.density(x_coord_list, y_coord_list)))
                     kid_node.change_node_position(int((cousin_angle * alpha + density_angle * beta)))
                     x_coord_list.append(kid_node.x_coord)
                     y_coord_list.append(kid_node.y_coord)
