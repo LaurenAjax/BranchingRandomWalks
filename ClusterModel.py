@@ -22,7 +22,7 @@ class Node:
             x_array.append(cur_parent.x_coord)
             y_array.append(cur_parent.y_coord)
             cur_parent = cur_parent.parent
-        plt.plot(x_array, y_array, color = (0, 0, 0, 0.1))
+        plt.plot(x_array, y_array, color = (0, 0, 0, 0.01))
 
     def build_dots(self):
         plt.plot(self.x_coord, self.y_coord, 'o', color = (1, 0, 0, 0.1))
@@ -31,6 +31,7 @@ root = Node(None, 0, 0, 0, 2, 0)
 attraction = 0.025
 # This seems incredibly low, even scalled up by new_gen later.
 # You try scaling it up and see what happens. I chose this after way to much experimentation because I thought it looked best.
+# A different concern then: Shouldn't the radius (i.e. attraction * new_gen) decrease over time, not increase? Should it not be a different function?
 
 def generate_node(parent_node, num_kids, angle, gen):
     x = parent_node.x_coord + math.cos(math.radians(angle))
@@ -46,7 +47,7 @@ def build_gen(cur_gen):
         next_gen = []
         for parent_node in cur_gen:
             if parent_node.guide == None:
-                parent_node.guide = random.randint(parent_node.angle - 90, parent_node.angle + 90)
+                parent_node.guide = random.random() * 360
                 # Isn't the node supposed to go in a completely random direction?
                 # This is a me thing. I just think it looks a bit better like this but it can absolutely be changed.
             for cousin_node in cur_gen:
@@ -56,7 +57,7 @@ def build_gen(cur_gen):
                     if dx * dx + dy * dy <= attraction * new_gen:
                         cousin_node.guide = parent_node.guide
             for i in range(parent_node.num_kids):
-                kid_node = generate_node(parent_node, 2, random.randint(parent_node.guide - 30, parent_node.guide + 30), new_gen)
+                kid_node = generate_node(parent_node, 2, random.random() * 60 + (parent_node.guide - 30), new_gen)
                 parent_node.next.append(kid_node)
                 next_gen.append(kid_node)
         print("Gen " + str(new_gen) + " Built!")
