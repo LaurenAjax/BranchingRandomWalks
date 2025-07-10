@@ -28,11 +28,9 @@ class Node:
         plt.plot(self.x_coord, self.y_coord, 'o', color = (1, 0, 0, 0.1))
 
 root = Node(None, 0, 0, 0, 2, 0)
-attraction = 0.025
-# This seems incredibly low, even scalled up by new_gen later.
-# You try scaling it up and see what happens. I chose this after way to much experimentation because I thought it looked best.
-# A different concern then: Shouldn't the radius (i.e. attraction * new_gen) decrease over time, not increase? Should it not be a different function?
-# I thought we changed our minds about that.
+
+def f(t):
+    return 0.9**(t + 1)
 
 def generate_node(parent_node, num_kids, angle, gen):
     x = parent_node.x_coord + math.cos(math.radians(angle))
@@ -47,16 +45,18 @@ def build_gen(cur_gen):
     if new_gen <= 15:
         next_gen = []
         for parent_node in cur_gen:
-            if parent_node.guide == None:
-                parent_node.guide = random.random() * 360
+            if parent_node.guide == None and new_gen <= 2:
+                parent_node.guide = random.randint(1, 360)
+            elif parent_node.guide == None:
+                parent_node.guide = random.randint(parent_node.angle - 90, parent_node.angle + 90)
             for cousin_node in cur_gen:
                 if cousin_node.guide == None:
                     dx = parent_node.x_coord - cousin_node.x_coord
                     dy = parent_node.y_coord - cousin_node.y_coord
-                    if dx * dx + dy * dy <= attraction * new_gen:
+                    if dx * dx + dy * dy <= f(new_gen):
                         cousin_node.guide = parent_node.guide
             for i in range(parent_node.num_kids):
-                kid_node = generate_node(parent_node, 2, random.random() * 60 + (parent_node.guide - 30), new_gen)
+                kid_node = generate_node(parent_node, 2, random.randint(parent_node.guide - 30, parent_node.guide + 30), new_gen)
                 parent_node.next.append(kid_node)
                 next_gen.append(kid_node)
         print("Gen " + str(new_gen) + " Built!")
