@@ -39,7 +39,7 @@ def assign_guiding_angle(cur_gen, parent_node, new_gen):
                 assign_guiding_angle(cur_gen, cousin_node, new_gen)
 
 def f(t):
-    return 0.5**t
+    return 0.9**t
 
 def generate_node(parent_node, num_kids, angle, gen):
     x = parent_node.x_coord + math.cos(math.radians(angle))

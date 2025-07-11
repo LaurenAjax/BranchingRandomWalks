@@ -30,7 +30,7 @@ class Node:
 root = Node(None, 0, 0, 0, 2, 0)
 
 def f(t):
-    return 0.9**(t + 3)
+    return 0.9**(t + 2)
 
 def generate_node(parent_node, num_kids, angle, gen):
     x = parent_node.x_coord + math.cos(math.radians(angle))
