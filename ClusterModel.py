@@ -27,10 +27,10 @@ class Node:
     def build_dots(self):
         plt.plot(self.x_coord, self.y_coord, 'o', color = (1, 0, 0, 0.1))
 
-root = Node(None, 0, 0, 0, 2, 0)
+root = Node(None, 0, 0, 0, 8, 0)
 
 def f(t):
-    return 0.9**(t + 2)
+    return 0.01 * t
 
 def generate_node(parent_node, num_kids, angle, gen):
     x = parent_node.x_coord + math.cos(math.radians(angle))
@@ -42,13 +42,13 @@ def generate_node(parent_node, num_kids, angle, gen):
 
 def build_gen(cur_gen):
     new_gen = cur_gen[0].gen + 1
+    next_gen = []
     if new_gen <= 15:
-        next_gen = []
         for parent_node in cur_gen:
-            if parent_node.guide == None and new_gen <= 5:
+            if parent_node.guide == None and new_gen <= 2:
                 parent_node.guide = random.randint(1, 360)
             elif parent_node.guide == None:
-                parent_node.guide = random.randint(parent_node.angle - 90, parent_node.angle + 90)
+                parent_node.guide = random.randint(parent_node.angle - 60, parent_node.angle + 60)
             for cousin_node in cur_gen:
                 if cousin_node.guide == None:
                     dx = parent_node.x_coord - cousin_node.x_coord
@@ -56,7 +56,7 @@ def build_gen(cur_gen):
                     if dx * dx + dy * dy <= f(new_gen):
                         cousin_node.guide = parent_node.guide
             for i in range(parent_node.num_kids):
-                kid_node = generate_node(parent_node, 2, random.randint(parent_node.guide - 30, parent_node.guide + 30), new_gen)
+                kid_node = generate_node(parent_node, 2, random.randint(parent_node.guide - 15, parent_node.guide + 15), new_gen)
                 parent_node.next.append(kid_node)
                 next_gen.append(kid_node)
         print("Gen " + str(new_gen) + " Built!")
