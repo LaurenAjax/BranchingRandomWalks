@@ -47,7 +47,7 @@ class Node:
         # For each child of this Node:
             child.plot_trace_path_helper(self.pos, plot, col)
             # Recursively call the helper function with this Node's true position array.
-        # plot.plot([arr[0], self.pos[0]], [arr[1], self.pos[1]], color = (0, 0, 0, .1))
+        plot.plot([arr[0], self.pos[0]], [arr[1], self.pos[1]], color = (0, 0, 0, .01))
         # Plot the line between this Node and its parent.
         if self.child == []:
         # If this Node has no children:
@@ -76,7 +76,8 @@ def f_t(t):
     # return math.log(math.log(t + 2) + 2) / (t + 2)
     # return 0.25
     # return math.sin(t) / 3 + 0.5
-    return math.sinh(1 / (t + 1))
+    # return math.sinh(1 / (t + 1))
+    return 1 / (t + 1)**2
 
 fig, (ax1, ax2) = plot.subplots(1, 2, figsize = (10, 5))
 ax1.set_title("Sample random simulation")
@@ -107,16 +108,13 @@ for k in range(repeats):
         components = g.connected_components(mode='weak')
         # print(clusters)
         clusters[k].append(len(components))
-        coord = [-1] * num
         angles = []
+        for i in components:
+            angles.append(random.random() * 2 * math.pi)
         for index, component in enumerate(components):
             for node in component:
-                coord[node] = index
-            angles.append(random.random() * 2 * math.pi)
-        for index, node in enumerate(living):
-            
-            node.set_guiding_angle(angles[coord[index]])
-            node.make_children(next)
+                living[node].set_guiding_angle(angles[index])
+                living[node].make_children(next)
         # print(coord)
         # print(angles)
         living = next
