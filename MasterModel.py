@@ -13,16 +13,19 @@ def zero_func(*args):
 class Simulation:
     def __init__(self, **kwargs):
         pos = kwargs.get('pos', [0,0])
-        self.root = Node(pos, None, 0, 0)
+        var = math.radians(kwargs.get('var', 15))
+        self.root = Node(pos, None, 0, 0, 0, var)
         
 
 class Node:
-    def __init__(self, pos, par, gen, guide):
+    def __init__(self, pos, par, ang, gen, guide, var):
         self.position = pos
         self.parent = par
+        self.angle = ang
         self.children = []
         self.generation = gen
         self.guiding = guide
+        self.variance = var
     
     def make_child(self):
         return 0
