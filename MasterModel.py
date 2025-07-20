@@ -30,12 +30,12 @@ class Node:
         self.sibling_variance = sib_var
     
     def make_child(self):
-        rand_angle = 0
-        density_angle = 0
-        cousin_angle = 0
-        cluster_angle = 0
-        angle = to_unit(arr_sum(rand_angle, density_angle, cousin_angle, cluster_angle)) # + random.random()
-        self.children.append(arr_sum(self.pos, [math.cos(angle), math.sin(angle)], self, angle, self.generation + 1, self.par_var, self.sib_var))
+        rand_arr = [0, 1]
+        density_arr = [0, 1]
+        cousin_arr = [0, 1]
+        cluster_arr = [0, 1]
+        bearing = to_unit(arr_sum(rand_arr, density_arr, cousin_arr, cluster_arr)) # + random.random()
+        self.children.append(arr_sum(self.pos, bearing), self, math.atan2(bearing[1], bearing[0]), self.generation + 1, self.par_var, self.sib_var))
 
 def arr_sum(*args):
     output = [0, 0]
