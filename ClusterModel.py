@@ -27,12 +27,12 @@ class Node:
     def build_dots(self):
         plt.plot(self.x_coord, self.y_coord, 'o', color = (1, 0, 0, 0.1))
 
-root = Node(None, 0, 0, 0, 8, 0)
+root = Node(None, 0, 0, 0, 2, 0)
 attraction = 0.01
 start_gen = 5
 end_gen = 15
-variant = math.radians(90)
-epsilon = math.radians(30)
+variant = math.radians(60)
+epsilon = math.radians(15)
 cluster_count_array = []
 gen_count_array = list(range(1, end_gen + 1))
 
@@ -60,9 +60,9 @@ def build_gen(cur_gen):
         next_gen = []
         for parent_node in cur_gen:
             if parent_node.guide == None and new_gen <= start_gen:
-                parent_node.guide = math.radians(random.random() * 360)
+                parent_node.guide = random.random() * 2 * math.pi
             elif parent_node.guide == None:
-                parent_node.guide = random.uniform(parent_node.angle - variant + math.radians(new_gen), parent_node.angle + variant - math.radians(new_gen))
+                parent_node.guide = random.uniform(parent_node.angle - variant, parent_node.angle + variant)
             for cousin_node in cur_gen:
                 if cousin_node.guide == None:
                     dx = parent_node.x_coord - cousin_node.x_coord
@@ -70,7 +70,7 @@ def build_gen(cur_gen):
                     if dx * dx + dy * dy <= f(new_gen):
                         cousin_node.guide = parent_node.guide
             for i in range(parent_node.num_kids):
-                kid_node = generate_node(parent_node, 2, random.uniform(parent_node.guide - epsilon + math.radians(new_gen), parent_node.guide + epsilon - math.radians(new_gen)), new_gen)
+                kid_node = generate_node(parent_node, 2, random.uniform(parent_node.guide - epsilon, parent_node.guide + epsilon), new_gen)
                 parent_node.next.append(kid_node)
                 next_gen.append(kid_node)
         print("Gen " + str(new_gen) + " Built!")
