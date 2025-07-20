@@ -14,7 +14,6 @@ class Node:
         self.guide = None
 
     def build_plot(self):
-        plt.plot(self.x_coord, self.y_coord, 'o', color = (0, 0, 1, 0.1))
         x_array = [self.x_coord]
         y_array = [self.y_coord]
         cur_parent = self.parent
@@ -27,8 +26,8 @@ class Node:
     def build_dots(self):
         plt.plot(self.x_coord, self.y_coord, 'o', color = (1, 0, 0, 0.1))
 
-root = Node(None, 0, 0, 0, 2, 0)
-attraction = 0.01
+root = Node(None, 0, 0, 0, 8, 0)
+attraction = 0.025
 start_gen = 5
 end_gen = 15
 variant = math.radians(60)
@@ -44,7 +43,7 @@ def cluster_count(gen):
     cluster_count_array.append(len(array))
 
 def f(t):
-    return attraction * t
+    return attraction * ((2 * t - 1) / t)
 
 def generate_node(parent_node, num_kids, angle, gen):
     x = parent_node.x_coord + math.cos(angle)
