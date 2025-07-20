@@ -35,7 +35,7 @@ class Node:
         cousin_arr = [0, 1]
         cluster_arr = [0, 1]
         bearing = to_unit(arr_sum(rand_arr, density_arr, cousin_arr, cluster_arr)) # + random.random()
-        self.children.append(arr_sum(self.pos, bearing), self, math.atan2(bearing[1], bearing[0]), self.generation + 1, self.par_var, self.sib_var))
+        self.children.append(Node(arr_sum(self.pos, bearing), self, math.atan2(bearing[1], bearing[0]), self.generation + 1, self.par_var, self.sib_var))
 
 def arr_sum(*args):
     output = [0, 0]
