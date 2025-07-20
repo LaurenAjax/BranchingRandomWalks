@@ -13,22 +13,29 @@ def zero_func(*args):
 class Simulation:
     def __init__(self, **kwargs):
         pos = kwargs.get('pos', [0,0])
-        var = math.radians(kwargs.get('var', 15))
-        self.root = Node(pos, None, 0, 0, 0, var)
+        par_var = math.radians(kwargs.get('par_var', 15))
+        sib_var = math.radians(kwargs.get('sib_var', 15))
+        self.root = Node(pos, None, 0, 0, 0, par_var, sib_var)
         
 
 class Node:
-    def __init__(self, pos, par, ang, gen, guide, var):
+    def __init__(self, pos, par, ang, gen, par_var, sib_var):
         self.position = pos
         self.parent = par
         self.angle = ang
         self.children = []
         self.generation = gen
-        self.guiding = guide
-        self.variance = var
+        self.guiding = 0
+        self.parent_variance = par_var
+        self.sibling_variance = sib_var
     
     def make_child(self):
-        return 0
+        rand_angle = 0
+        density_angle = 0
+        cousin_angle = 0
+        cluster_angle = 0
+        angle = to_unit(arr_sum(rand_angle, density_angle, cousin_angle, cluster_angle)) # + random.random()
+        self.children.append(arr_sum(self.pos, [math.cos(angle), math.sin(angle)], self, angle, self.generation + 1, self.par_var, self.sib_var))
 
 def arr_sum(*args):
     output = [0, 0]
