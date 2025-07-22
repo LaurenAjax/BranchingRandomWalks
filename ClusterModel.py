@@ -27,7 +27,7 @@ class Node:
         plt.plot(self.x_coord, self.y_coord, 'o', color = (1, 0, 0, 0.1))
 
 root = Node(None, 0, 0, 0, 8, 0)
-attraction = 0.012
+attraction = 0.013
 start_gen = 5
 end_gen = 15
 variant = math.radians(60)
