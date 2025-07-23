@@ -97,11 +97,11 @@ class Simulation:
             
     def plot_end(self, env):
         for node in self.gens[-1]:
-            node.plot_end(env)
+            node.plot_end(env, (0, 0, 0, 1))
     
     def plot_path(self, env):
         for node in self.gens[0]:
-            node.plot_path(env)
+            node.plot_path(env, 0, 1)
         
 
 class Node:
@@ -204,15 +204,17 @@ class Node:
             for child in self.children:
                 child.get_child_cousins_helper(arr, index - 1)
     
-    def plot_end(self, env):
-        env.plot([self.position[0]], [self.position[1]], 'o', color = (0, 0, 0, .1))
+    def plot_end(self, env, hue):
+        env.plot([self.position[0]], [self.position[1]], 'o', color = hue)
 
-    def plot_path(self, env):
-        for child in self.children:
-            env.plot([self.position[0], child.position[0]], [self.position[1], child.position[1]], color = (0, 0, 0, .1))
-            child.plot_path(env)
+    def plot_path(self, env, hue, depth):
+        for i, child in enumerate(self.children):
+            new_hue = hue + i / (2**depth)
+            col = color_alpha(color.hsv_to_rgb((new_hue, 1, 1)), 0.1)
+            env.plot([self.position[0], child.position[0]], [self.position[1], child.position[1]], color = col)
+            child.plot_path(env, new_hue, depth + 1)
         if len(self.children) == 0:
-            self.plot_end(env)
+            self.plot_end(env, color_alpha(color.hsv_to_rgb((hue, 1, 1)), 0.1))
 
 def arr_sum(*args):
     output = [0, 0]
@@ -255,6 +257,9 @@ def density_func(s, pop):
             count += 1 / 4
     return count
 
+def color_alpha(col, alpha):
+    return (col[0], col[1], col[2], alpha)
+
 def f_t(t):
     return 0.011 * ((2 * t + 1) / (t + 1))
 
@@ -279,7 +284,7 @@ def get_values():
 def get_answers(arr):
     answers = []
     for i in range(4):
-        if arr[i] == 0.0:
+        if arr[i] <= 0:
             answers.append(False)
         else:
             answers.append(True)
