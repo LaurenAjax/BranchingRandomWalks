@@ -39,17 +39,24 @@ class Simulation:
         self.par_var = math.radians(kwargs.get('par_var', 15))
         self.sib_var = math.radians(kwargs.get('sib_var', 15))
         self.clu_var = math.radians(kwargs.get('clu_var', 15))
+        self.bias_var = math.radians(kwargs.get('bias_var', 15))
         self.gens = None
         self.root = None
         self.generation = 0
         self.included = [kwargs.get('random_walk', False),
                          kwargs.get('density', False),
                          kwargs.get('cloud', False),
-                         kwargs.get('cluster', False)]
+                         kwargs.get('cluster', False), 
+                         kwargs.get('lattice', False), 
+                         kwargs.get('triangle', False), 
+                         kwargs.get('bias', False)]
         self.weights = [kwargs.get('random_walk_weight', 1 if self.included[0] else 0),
                         kwargs.get('density_weight', 1 if self.included[1] else 0),
                         kwargs.get('cloud_weight', 1 if self.included[2] else 0),
-                        kwargs.get('clustering_weight', 1 if self.included[3] else 0)]
+                        kwargs.get('clustering_weight', 1 if self.included[3] else 0), 
+                        kwargs.get('lattice_weight', 1 if self.included[4] else 0), 
+                        kwargs.get('triangle_weight', 1 if self.included[5] else 0), 
+                        kwargs.get('bias_weight', 1 if self.included[6] else 0)]
         self.independent_siblings = kwargs.get('independent_siblings', False)
         self.run_params = None
         self.graph = None
@@ -60,7 +67,7 @@ class Simulation:
         self.gens = [[]]
         self.clusters = []
         # self.run_params = [self.par_var, self.sib_var, self.clu_var, self.gens]
-        self.root = Node(self.pos, None, 0, 0, self.par_var, self.sib_var, self.clu_var, self.gens[0], self.weights, self.included)
+        self.root = Node(self.pos, None, 0, 0, self.par_var, self.sib_var, self.clu_var, self.bias_var, self.gens[0], self.weights, self.included)
         self.generation = 0
         self.graph = None
         
@@ -105,7 +112,7 @@ class Simulation:
         
 
 class Node:
-    def __init__(self, pos, par, ang, gen, par_var, sib_var, clu_var, population, w, i):
+    def __init__(self, pos, par, ang, gen, par_var, sib_var, clu_var, bias_var, population, w, i):
         self.position = pos
         self.parent = par
         self.angle = ang
@@ -115,6 +122,7 @@ class Node:
         self.parent_variance = par_var
         self.sibling_variance = sib_var
         self.cluster_variance = clu_var
+        self.bias_variance = bias_var
         self.population = population
         self.population.append(self)
         self.weights = w
@@ -125,10 +133,13 @@ class Node:
     
     def make_children(self, next):
         density = density_func(self, self.population)
-        rand_arr = [0,0]
-        density_arr = [0,0]
-        cloud_arr = [0,0]
-        cluster_arr = [0,0]
+        rand_arr = [0, 0]
+        density_arr = [0, 0]
+        cloud_arr = [0, 0]
+        cluster_arr = [0, 0]
+        lattice_arr = [0, 0]
+        triangle_arr = [0, 0]
+        bias_arr = [0, 0]
         if self.included[0]:
             rand_angle = random.random() * 2 * math.pi
             rand_arr = [math.cos(rand_angle), math.sin(rand_angle)]
@@ -172,14 +183,50 @@ class Node:
         if self.included[3]:
             cluster_angle = self.guiding + random.random() * 2 * self.cluster_variance - self.cluster_variance
             cluster_arr = [math.cos(cluster_angle), math.sin(cluster_angle)]
+        if self.included[4]:
+            lattice_angles = [0, 90, 180, 270]
+            lattice_selected = random.randint(0, 3)
+            lattice_angle = math.radians(lattice_angles[lattice_selected])
+            lattice_arr = [math.cos(lattice_angle), math.sin(lattice_angle)]
+        if self.included[5]:
+            rand_val = random.randint(1, 22)
+            if rand_val < 8:
+                triangle_angle = math.radians(0) + random.random() * 2 * self.bias_variance - self.bias_variance
+            elif rand_val < 15:
+                triangle_angle = math.radians(120) + random.random() * 2 * self.bias_variance - self.bias_variance
+            elif rand_val < 22:
+                triangle_angle = math.radians(240) + random.random() * 2 * self.bias_variance - self.bias_variance
+            else:
+                triangle_angle = random.random() * 2 * math.pi
+            triangle_arr = [math.cos(triangle_angle), math.sin(triangle_angle)]
+        if self.included[6]:
+            rand_val = random.randint(1, 22)
+            if self.generation == 0:
+                if rand_val < 8:
+                    bias_angle = math.radians(0) + random.random() * 2 * self.bias_variance - self.bias_variance
+                elif rand_val < 15:
+                    bias_angle = math.radians(120) + random.random() * 2 * self.bias_variance - self.bias_variance
+                elif rand_val < 22:
+                    bias_angle = math.radians(240) + random.random() * 2 * self.bias_variance - self.bias_variance
+                else:
+                    bias_angle = random.random() * 2 * math.pi
+            else:
+                if rand_val < 21:
+                    bias_angle = self.angle + random.random() * 2 * self.bias_variance  - self.bias_variance
+                else:
+                    bias_angle = random.random() * 2 * math.pi
+            bias_arr = [math.cos(bias_angle), math.sin(bias_angle)]
         child_count = 2
         delta = to_unit(arr_sum(scale_arr(rand_arr, self.weights[0]),
                                 scale_arr(density_arr, self.weights[1]),
                                 scale_arr(cloud_arr, self.weights[2]),
-                                scale_arr(cluster_arr, self.weights[3])))
+                                scale_arr(cluster_arr, self.weights[3]), 
+                                scale_arr(lattice_arr, self.weights[4]), 
+                                scale_arr(triangle_arr, self.weights[5]), 
+                                scale_arr(bias_arr, self.weights[6])))
         for _ in range(child_count):
             bearing = math.atan2(delta[1], delta[0]) + random.random() * 2 * self.sibling_variance - self.sibling_variance
-            self.children.append(Node(arr_sum(self.position, [math.cos(bearing), math.sin(bearing)]), self, bearing, self.generation + 1, self.parent_variance, self.sibling_variance, self.cluster_variance, next, self.weights, self.included))
+            self.children.append(Node(arr_sum(self.position, [math.cos(bearing), math.sin(bearing)]), self, bearing, self.generation + 1, self.parent_variance, self.sibling_variance, self.cluster_variance, self.bias_variance, next, self.weights, self.included))
             
     def get_child_cousins(self):
         cousins = [[]]
@@ -267,7 +314,17 @@ def radius(gen, degree):
     return 0.1
 
 def get_values(): 
-    questions = ["How would you like to weigh the random walk model?", "How would you like to weigh the density model?", "How would you like to weigh the cloud model?", "How would you like to weigh the cluster model?", "How much would you like the kid nodes' angles to vary from their parents'?", "How much would you like the sibling nodes' angles to vary from each other?", "How much would you like the kid nodes' angles to vary from the guiding angle?"]
+    questions = ["How would you like to weigh the random walk model?", 
+                 "How would you like to weigh the density model?", 
+                 "How would you like to weigh the cloud model?", 
+                 "How would you like to weigh the cluster model?", 
+                 "How would you like to weigh the lattice model?", 
+                 "How would you like to weigh the biased model?", 
+                 "How would you like to weigh the parent influenced biased model?", 
+                 "How much would you like the kid nodes' angles to vary from their parents'?", 
+                 "How much would you like the sibling nodes' angles to vary from each other?", 
+                 "How much would you like the kid nodes' angles to vary from the guiding angle?", 
+                 "How much would you like the nodes' angles to varies from the biased angles?"]
     answers = []
     index = 0
     while index < len(questions):
@@ -283,7 +340,7 @@ def get_values():
 
 def get_answers(arr):
     answers = []
-    for i in range(4):
+    for i in range(7):
         if arr[i] <= 0:
             answers.append(False)
         else:
@@ -293,7 +350,7 @@ def get_answers(arr):
 plot.figure(1, figsize = (6, 6))
 plot.axis([-10, 10, -10, 10])
 answers = get_answers(get_values())
-sim = Simulation(random_walk = answers[0], density = answers[1], cloud = answers[2], cluster = answers[3], random_walk_weight = answers[4], density_weight = answers[5], cloud_weight = answers[6], clustering_weight = answers[7], par_var = answers[8], sib_var = answers[9], clu_var = answers[10])
+sim = Simulation(random_walk = answers[0], density = answers[1], cloud = answers[2], cluster = answers[3], lattice = answers[4], triangle = answers[5], bias = answers[6], random_walk_weight = answers[7], density_weight = answers[8], cloud_weight = answers[9], clustering_weight = answers[10], lattice_weight = answers[11], triangle_weight = answers[12], bias_weight = answers[13], par_var = answers[14], sib_var = answers[15], clu_var = answers[16], bias_var = answers[17])
 sim.initialize()
 sim.run_gens(10)
 sim.plot_path(plot)
