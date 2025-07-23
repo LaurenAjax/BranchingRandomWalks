@@ -85,10 +85,11 @@ while count < len(lst):
     # increases the index currently being referenced by 1
 
 for node in lst:
-    plot.polar(node.theta_coord, node.r_coord, 'o', color=(0, 0, 0, 0.1))
     # plots a transparent black dot at the polar coordinates of all the nodes
+    if len(node.next) == 0:
+            plot.polar(node.theta_coord, node.r_coord, 'o', color=(0, 0, 0, 0.1))
     for kid in node.next:
-        plot.polar([node.theta_coord, kid.theta_coord], [node.r_coord, kid.r_coord], color=(random.random(), random.random(), random.random(), 0.5))
+        plot.polar([node.theta_coord, kid.theta_coord], [node.r_coord, kid.r_coord], color=(0, 0, 0, 0.1))
         # plots a randomly colored line between a parent node and each one of their kid nodes
 
 plot.show()

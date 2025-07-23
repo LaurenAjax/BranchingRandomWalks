@@ -35,7 +35,7 @@ def distBetween(a, b):
 
 class Simulation:
     def __init__(self, **kwargs):
-        self.pos = kwargs.get('pos', [0,0])
+        self.pos = kwargs.get('pos', [0, 0])
         self.par_var = math.radians(kwargs.get('par_var', 15))
         self.sib_var = math.radians(kwargs.get('sib_var', 15))
         self.clu_var = math.radians(kwargs.get('clu_var', 15))
@@ -256,14 +256,39 @@ def density_func(s, pop):
     return count
 
 def f_t(t):
-    return 0.012 * (2 * t + 2 - 1) / (t + 1)
+    return 0.011 * ((2 * t + 1) / (t + 1))
 
 def radius(gen, degree):
     return 0.1
 
+def get_values(): 
+    questions = ["How would you like to weigh the random walk model?", "How would you like to weigh the density model?", "How would you like to weigh the cloud model?", "How would you like to weigh the cluster model?", "How much would you like the kid nodes' angles to vary from their parents'?", "How much would you like the sibling nodes' angles to vary from each other?", "How much would you like the kid nodes' angles to vary from the guiding angle?"]
+    answers = []
+    index = 0
+    while index < len(questions):
+        print(questions[index])
+        answer = input()
+        index += 1
+        try:
+            num_answer = float(answer)
+            answers.append(num_answer)
+        except (ValueError, TypeError):
+            index -= 1
+    return answers
+
+def get_answers(arr):
+    answers = []
+    for i in range(4):
+        if arr[i] == 0.0:
+            answers.append(False)
+        else:
+            answers.append(True)
+    return answers + arr
+
 plot.figure(1, figsize = (6, 6))
 plot.axis([-10, 10, -10, 10])
-sim = Simulation(random_walk = True, density = True, cloud = True, cluster = True)
+answers = get_answers(get_values())
+sim = Simulation(random_walk = answers[0], density = answers[1], cloud = answers[2], cluster = answers[3], random_walk_weight = answers[4], density_weight = answers[5], cloud_weight = answers[6], clustering_weight = answers[7], par_var = answers[8], sib_var = answers[9], clu_var = answers[10])
 sim.initialize()
 sim.run_gens(10)
 sim.plot_path(plot)

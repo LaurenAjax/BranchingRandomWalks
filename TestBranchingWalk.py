@@ -26,9 +26,9 @@ root = Node(None, x, y)
 
 def brancher(prev_node, count):
     if (count == steps):
-        plot.plot(prev_node.x_coord, prev_node.y_coord, color=(random.random(),random.random(),random.random()))
+        plot.plot(prev_node.x_coord, prev_node.y_coord, color=(0, 0, 0, 0.1))
         # plots the branch of the tree once it has terminated
-        plot.plot(prev_node.x_coord[count - 1], prev_node.y_coord[count - 1], 'o', color='k')
+        plot.plot(prev_node.x_coord[count - 1], prev_node.y_coord[count - 1], 'o', color=(0, 0, 0, 0.1))
         # plots the end point of the branch
         return None
         # returns a non-existent node in place of kid nodes
