@@ -33,13 +33,84 @@ def get_angles(source, target, sRad, tRad, probability, rangeArr):
 def distBetween(a, b):
     return get_scale(arr_dif(a, b))
 
+def get_values(): 
+"""Asks the user a series of quesions that they must input an answer to
+and returns an array of their answers.  
+"""
+    questions = ["How would you like to weigh the random walk model?", 
+                 "How would you like to weigh the density model?", 
+                 "How would you like to weigh the cloud model?", 
+                 "How would you like to weigh the cluster model?", 
+                 "How would you like to weigh the lattice model?", 
+                 "How would you like to weigh the biased model?", 
+                 "How would you like to weigh the parent influenced biased model?", 
+                 "How much would you like the kid nodes' angles to vary from their parents'?", 
+                 "How much would you like the sibling nodes' angles to vary from each other?", 
+                 "How much would you like the kid nodes' angles to vary from the guiding angle?", 
+                 "How much would you like the nodes' angles to varies from the biased angles?",
+                 "How many kids would you like each node to have?", 
+                 "How many generations would you like each model to run for?"]
+    # an array of all questions that the user will answer with their input
+    answers = []
+    # an array of all the users inputed answers
+    index = 0
+    # the current index of the questions array
+    while index < len(questions):
+        print(questions[index])
+        # prints the question at the current index
+        answer = input()
+        # saves the users answer
+        index += 1
+        try:
+            num_answer = float(answer)
+            # checks the answer to see if it can become a float
+            answers.append(num_answer)
+            # appends it to the answers array if it can
+        except (ValueError, TypeError):
+            index -= 1
+            # reasks the question if it can't
+    return answers
+    # returns the array containing the user's answers
+
+def get_answers(arr):
+"""Determines, based on user input, whether or not a model will be needed,
+creates a true or false array that indicates so, and appends that array to
+the array of user inputs.
+
+Init Args:
+arr -- The array of user inputs.
+"""
+    answers = []
+    # an array of true or false values depending on what needs to be run
+    for i in range(7):
+        if arr[i] <= 0:
+            answers.append(False)
+            # if the value of the weight is less than or equal to zero, the model need not be run
+        else:
+            answers.append(True)
+            # else the model should be run
+    return answers + arr
+    # returns the two arrays appended together to be read
+
+answers = get_answers(get_values())
+# an array of whether or not a model is needed and their weights, among other things
+child_count = int(answers[18])
+# the number of children each node will have
+if child_count <= 0:
+    child_count = 2
+    # in case an invalid child count is given
+
 class Simulation:
     def __init__(self, **kwargs):
         self.pos = kwargs.get('pos', [0, 0])
         self.par_var = math.radians(kwargs.get('par_var', 15))
+        # the variance the kid nodes have from their parent nodes
         self.sib_var = math.radians(kwargs.get('sib_var', 15))
+        # the variance the kid nodes have from their sibling nodes
         self.clu_var = math.radians(kwargs.get('clu_var', 15))
+        # the variance the kid nodes have from the guiding angle
         self.bias_var = math.radians(kwargs.get('bias_var', 15))
+        # the variance the kid nodes have from the biased angle
         self.gens = None
         self.root = None
         self.generation = 0
@@ -50,6 +121,7 @@ class Simulation:
                          kwargs.get('lattice', False), 
                          kwargs.get('triangle', False), 
                          kwargs.get('bias', False)]
+        # an array of whether or not a model will be used
         self.weights = [kwargs.get('random_walk_weight', 1 if self.included[0] else 0),
                         kwargs.get('density_weight', 1 if self.included[1] else 0),
                         kwargs.get('cloud_weight', 1 if self.included[2] else 0),
@@ -57,6 +129,7 @@ class Simulation:
                         kwargs.get('lattice_weight', 1 if self.included[4] else 0), 
                         kwargs.get('triangle_weight', 1 if self.included[5] else 0), 
                         kwargs.get('bias_weight', 1 if self.included[6] else 0)]
+        # an array of the weights of each model
         self.independent_siblings = kwargs.get('independent_siblings', False)
         self.run_params = None
         self.graph = None
@@ -185,38 +258,55 @@ class Node:
             cluster_arr = [math.cos(cluster_angle), math.sin(cluster_angle)]
         if self.included[4]:
             lattice_angles = [0, 90, 180, 270]
+            # an array of all possible lattice angles
             lattice_selected = random.randint(0, 3)
+            # a random index for the array of lattice angles
             lattice_angle = math.radians(lattice_angles[lattice_selected])
+            # the selected angle for the node to travel
             lattice_arr = [math.cos(lattice_angle), math.sin(lattice_angle)]
+            # the coordinates of the new node
         if self.included[5]:
             rand_val = random.randint(1, 22)
+            # a random value that determines which direction the node goes in
             if rand_val < 8:
                 triangle_angle = math.radians(0) + random.random() * 2 * self.bias_variance - self.bias_variance
+                # an angle within 10 degrees of 0
             elif rand_val < 15:
                 triangle_angle = math.radians(120) + random.random() * 2 * self.bias_variance - self.bias_variance
+                # an angle within 10 degrees of 120
             elif rand_val < 22:
                 triangle_angle = math.radians(240) + random.random() * 2 * self.bias_variance - self.bias_variance
+                # an angle within 10 degrees of 240
             else:
                 triangle_angle = random.random() * 2 * math.pi
+                # a completely random angle
             triangle_arr = [math.cos(triangle_angle), math.sin(triangle_angle)]
+            # the coordinates of the new node
         if self.included[6]:
             rand_val = random.randint(1, 22)
+            # a random value that determines which direction the node goes in
             if self.generation == 0:
                 if rand_val < 8:
                     bias_angle = math.radians(0) + random.random() * 2 * self.bias_variance - self.bias_variance
+                    # an angle within 10 degrees of 0
                 elif rand_val < 15:
                     bias_angle = math.radians(120) + random.random() * 2 * self.bias_variance - self.bias_variance
+                    # an angle within 10 degrees of 120
                 elif rand_val < 22:
                     bias_angle = math.radians(240) + random.random() * 2 * self.bias_variance - self.bias_variance
+                    # an angle within 10 degrees of 240
                 else:
                     bias_angle = random.random() * 2 * math.pi
+                    # a completely random angle
             else:
                 if rand_val < 21:
-                    bias_angle = self.angle + random.random() * 2 * self.bias_variance  - self.bias_variance
+                    bias_angle = self.angle + random.random() * 2 * self.parent_variance  - self.parent_variance
+                    # an angle within 10 degrees of its parent's angle
                 else:
                     bias_angle = random.random() * 2 * math.pi
+                    # a completely random angle
             bias_arr = [math.cos(bias_angle), math.sin(bias_angle)]
-        child_count = 2
+            # the coordinates of the new node
         delta = to_unit(arr_sum(scale_arr(rand_arr, self.weights[0]),
                                 scale_arr(density_arr, self.weights[1]),
                                 scale_arr(cloud_arr, self.weights[2]),
@@ -256,7 +346,7 @@ class Node:
 
     def plot_path(self, env, hue, depth):
         for i, child in enumerate(self.children):
-            new_hue = hue + i / (2**depth)
+            new_hue = hue + i / (child_count**depth)
             col = color_alpha(color.hsv_to_rgb((new_hue, 1, 1)), 0.1)
             env.plot([self.position[0], child.position[0]], [self.position[1], child.position[1]], color = col)
             child.plot_path(env, new_hue, depth + 1)
@@ -313,46 +403,11 @@ def f_t(t):
 def radius(gen, degree):
     return 0.1
 
-def get_values(): 
-    questions = ["How would you like to weigh the random walk model?", 
-                 "How would you like to weigh the density model?", 
-                 "How would you like to weigh the cloud model?", 
-                 "How would you like to weigh the cluster model?", 
-                 "How would you like to weigh the lattice model?", 
-                 "How would you like to weigh the biased model?", 
-                 "How would you like to weigh the parent influenced biased model?", 
-                 "How much would you like the kid nodes' angles to vary from their parents'?", 
-                 "How much would you like the sibling nodes' angles to vary from each other?", 
-                 "How much would you like the kid nodes' angles to vary from the guiding angle?", 
-                 "How much would you like the nodes' angles to varies from the biased angles?"]
-    answers = []
-    index = 0
-    while index < len(questions):
-        print(questions[index])
-        answer = input()
-        index += 1
-        try:
-            num_answer = float(answer)
-            answers.append(num_answer)
-        except (ValueError, TypeError):
-            index -= 1
-    return answers
-
-def get_answers(arr):
-    answers = []
-    for i in range(7):
-        if arr[i] <= 0:
-            answers.append(False)
-        else:
-            answers.append(True)
-    return answers + arr
-
 plot.figure(1, figsize = (6, 6))
 plot.axis([-10, 10, -10, 10])
-answers = get_answers(get_values())
 sim = Simulation(random_walk = answers[0], density = answers[1], cloud = answers[2], cluster = answers[3], lattice = answers[4], triangle = answers[5], bias = answers[6], random_walk_weight = answers[7], density_weight = answers[8], cloud_weight = answers[9], clustering_weight = answers[10], lattice_weight = answers[11], triangle_weight = answers[12], bias_weight = answers[13], par_var = answers[14], sib_var = answers[15], clu_var = answers[16], bias_var = answers[17])
 sim.initialize()
-sim.run_gens(10)
+sim.run_gens(int(answers[19]))
 sim.plot_path(plot)
 
 plot.show()

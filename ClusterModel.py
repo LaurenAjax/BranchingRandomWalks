@@ -21,10 +21,10 @@ class Node:
             x_array.append(cur_parent.x_coord)
             y_array.append(cur_parent.y_coord)
             cur_parent = cur_parent.parent
-        plt.plot(x_array, y_array, color = (0, 0, 0, 0.1))
+        plt.plot(x_array, y_array, color = (0, 0, 0, 0.01))
 
     def build_dots(self):
-        plt.plot(self.x_coord, self.y_coord, 'o', color = (1, 0, 0, 0.01))
+        plt.plot(self.x_coord, self.y_coord, 'o', color = (1, 0, 0, 0.1))
 
 root = Node(None, 0, 0, 0, 8, 0)
 attraction = 0.012
