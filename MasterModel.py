@@ -213,13 +213,13 @@ class Node:
         lattice_arr = [0, 0]
         triangle_arr = [0, 0]
         bias_arr = [0, 0]
-        if self.included[0]:
+        if self.included[0] or self.generation < 5:
             rand_angle = random.random() * 2 * math.pi
             rand_arr = [math.cos(rand_angle), math.sin(rand_angle)]
-        if self.included[1]:
+        if self.included[1] and self.generation >= 5:
             density_angle = random.random() * 2 * math.pi
             density_arr = to_unit(arr_sum(scale_arr([math.cos(self.angle), math.sin(self.angle)], density), [math.cos(density_angle), math.sin(density_angle)]))
-        if self.included[2]:
+        if self.included[2] and self.generation >= 5:
             true_region = [[-math.pi, math.pi, 1]]
             regions = []
             cousins = self.get_child_cousins()
@@ -253,10 +253,10 @@ class Node:
             index = random.choices(range(len(true_region)), map(lambda x: x[2] * (x[1]- x[0]) / math.pi / 2, true_region))[0]
             cloud_angle = lerp(true_region[index][0], true_region[index][1], random.random())
             cloud_arr = [math.cos(cloud_angle), math.sin(cloud_angle)]
-        if self.included[3]:
+        if self.included[3] and self.generation >= 5:
             cluster_angle = self.guiding + random.random() * 2 * self.cluster_variance - self.cluster_variance
             cluster_arr = [math.cos(cluster_angle), math.sin(cluster_angle)]
-        if self.included[4]:
+        if self.included[4] and self.generation >= 5:
             lattice_angles = [0, 90, 180, 270]
             # an array of all possible lattice angles
             lattice_selected = random.randint(0, 3)
@@ -265,7 +265,7 @@ class Node:
             # the selected angle for the node to travel
             lattice_arr = [math.cos(lattice_angle), math.sin(lattice_angle)]
             # the coordinates of the new node
-        if self.included[5]:
+        if self.included[5] and self.generation >= 5:
             rand_val = random.randint(1, 22)
             # a random value that determines which direction the node goes in
             if rand_val < 8:
@@ -282,7 +282,7 @@ class Node:
                 # a completely random angle
             triangle_arr = [math.cos(triangle_angle), math.sin(triangle_angle)]
             # the coordinates of the new node
-        if self.included[6]:
+        if self.included[6] and self.generation >= 5:
             rand_val = random.randint(1, 22)
             # a random value that determines which direction the node goes in
             if self.generation == 0:
@@ -307,16 +307,24 @@ class Node:
                     # a completely random angle
             bias_arr = [math.cos(bias_angle), math.sin(bias_angle)]
             # the coordinates of the new node
-        delta = to_unit(arr_sum(scale_arr(rand_arr, self.weights[0]),
-                                scale_arr(density_arr, self.weights[1]),
-                                scale_arr(cloud_arr, self.weights[2]),
-                                scale_arr(cluster_arr, self.weights[3]), 
-                                scale_arr(lattice_arr, self.weights[4]), 
-                                scale_arr(triangle_arr, self.weights[5]), 
-                                scale_arr(bias_arr, self.weights[6])))
-        for _ in range(child_count):
-            bearing = math.atan2(delta[1], delta[0]) + random.random() * 2 * self.sibling_variance - self.sibling_variance
-            self.children.append(Node(arr_sum(self.position, [math.cos(bearing), math.sin(bearing)]), self, bearing, self.generation + 1, self.parent_variance, self.sibling_variance, self.cluster_variance, self.bias_variance, next, self.weights, self.included))
+        if self.generation < 5:
+            delta = to_unit(arr_sum(scale_arr(rand_arr, 1)))
+        else:
+            delta = to_unit(arr_sum(scale_arr(rand_arr, self.weights[0]),
+                                    scale_arr(density_arr, self.weights[1]),
+                                    scale_arr(cloud_arr, self.weights[2]),
+                                    scale_arr(cluster_arr, self.weights[3]), 
+                                    scale_arr(lattice_arr, self.weights[4]), 
+                                    scale_arr(triangle_arr, self.weights[5]), 
+                                    scale_arr(bias_arr, self.weights[6])))
+        if self.generation < 5:
+            for _ in range(2):
+                bearing = math.atan2(delta[1], delta[0]) + random.random() * 2 * self.sibling_variance - self.sibling_variance
+                self.children.append(Node(arr_sum(self.position, [math.cos(bearing), math.sin(bearing)]), self, bearing, self.generation + 1, self.parent_variance, self.sibling_variance, self.cluster_variance, self.bias_variance, next, self.weights, self.included))
+        else:
+            for _ in range(child_count):
+                bearing = math.atan2(delta[1], delta[0]) + random.random() * 2 * self.sibling_variance - self.sibling_variance
+                self.children.append(Node(arr_sum(self.position, [math.cos(bearing), math.sin(bearing)]), self, bearing, self.generation + 1, self.parent_variance, self.sibling_variance, self.cluster_variance, self.bias_variance, next, self.weights, self.included))
             
     def get_child_cousins(self):
         cousins = [[]]
