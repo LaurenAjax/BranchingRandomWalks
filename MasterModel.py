@@ -398,7 +398,7 @@ def color_alpha(col, alpha):
     return (col[0], col[1], col[2], alpha)
 
 def f_t(t):
-    return 0.011 * ((2 * t + 1) / (t + 1))
+    return 0.012 * ((2 * t + 1) / (t + 1))
 
 def radius(gen, degree):
     return 0.1
