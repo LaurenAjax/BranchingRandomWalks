@@ -403,12 +403,15 @@ def f_t(t):
 def radius(gen, degree):
     return 0.1
 
-plot.figure(1, figsize = (6, 6))
-plot.axis([-10, 10, -10, 10])
+fig, (ax1, ax2, ax3) = plot.subplots(3, 3, figsize = (10, 5))
+axX = [ax1, ax2, ax3]
 sim = Simulation(random_walk = answers[0], density = answers[1], cloud = answers[2], cluster = answers[3], lattice = answers[4], triangle = answers[5], bias = answers[6], random_walk_weight = answers[7], density_weight = answers[8], cloud_weight = answers[9], clustering_weight = answers[10], lattice_weight = answers[11], triangle_weight = answers[12], bias_weight = answers[13], par_var = answers[14], sib_var = answers[15], clu_var = answers[16], bias_var = answers[17])
-sim.initialize()
-sim.run_gens(int(answers[19]))
-sim.plot_path(plot)
+for a in range(3):
+    for b in range(3):
+        sim.initialize()
+        sim.run_gens(int(answers[19]))
+        sim.plot_path(axX[a][b])
+        axX[a][b].axis([-int(answers[19]), int(answers[19]), -int(answers[19]), int(answers[19])])
 
 plot.show()
 # Models to recreate:
