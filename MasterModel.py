@@ -34,9 +34,9 @@ def distBetween(a, b):
     return get_scale(arr_dif(a, b))
 
 def get_values(): 
-"""Asks the user a series of quesions that they must input an answer to
-and returns an array of their answers.  
-"""
+    """Asks the user a series of quesions that they must input an answer to
+    and returns an array of their answers.  
+    """
     questions = ["How would you like to weigh the random walk model?", 
                  "How would you like to weigh the density model?", 
                  "How would you like to weigh the cloud model?", 
@@ -73,13 +73,13 @@ and returns an array of their answers.
     # returns the array containing the user's answers
 
 def get_answers(arr):
-"""Determines, based on user input, whether or not a model will be needed,
-creates a true or false array that indicates so, and appends that array to
-the array of user inputs.
+    """Determines, based on user input, whether or not a model will be needed,
+    creates a true or false array that indicates so, and appends that array to
+    the array of user inputs.
 
-Init Args:
-arr -- The array of user inputs.
-"""
+    Init Args:
+    arr -- The array of user inputs.
+    """
     answers = []
     # an array of true or false values depending on what needs to be run
     for i in range(7):
