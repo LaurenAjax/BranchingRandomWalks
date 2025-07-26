@@ -4,6 +4,7 @@ import matplotlib.pyplot as plot
 import matplotlib.colors as color
 import functools as ft
 import igraph as ig
+from matplotlib.colors import LinearSegmentedColormap
 
 def zero_func(*args):
     return 0
@@ -449,11 +450,11 @@ for a in range(3):
     for b in range(3):
         sim.initialize()
         sim.run_gens(int(answers[19]))
-        sim.plot_path(axX[a][b])
+        # sim.plot_path(axX[a][b])
         # sim.plot_end(axX[a][b])
         # sim.heat_end(axX[a][b])
         # sim.heat_path(axX[a][b])
-        # sim.plot_other_path(plot)
+        sim.plot_other_path(axX[a][b])
         axX[a][b].axis([-int(answers[19]), int(answers[19]), -int(answers[19]), int(answers[19])])
 
 
