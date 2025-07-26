@@ -182,6 +182,29 @@ class Simulation:
     def plot_path(self, env):
         for node in self.gens[0]:
             node.plot_path(env, 0, 1)
+
+    def plot_other_path(self, env):
+        for node in self.gens[0]:
+            node.plot_other_path(env)
+
+    def heat_end(self, env):
+        x = []
+        y = []
+        for node in self.gens[-1]:
+            x.append(node.position[0])
+            y.append(node.position[1])   
+        my_colormap = LinearSegmentedColormap.from_list("my colormap", ['#70e00000', '#70e000ff'], N = 100)
+        env.hist2d(x, y, bins = 75, range = [[-10, 10], [-10, 10]], cmap = my_colormap)
+
+    def heat_path(self, env):
+        x = []
+        y = []
+        for thing in self.gens:
+            for node in thing:
+                x.append(node.position[0])
+                y.append(node.position[1])   
+        my_colormap = LinearSegmentedColormap.from_list("my colormap", ['#38b00000', '#38b000ff'], N = 100)
+        env.hist2d(x, y, bins = 75, range = [[-10, 10], [-10, 10]], cmap = my_colormap)
         
 
 class Node:
@@ -361,6 +384,14 @@ class Node:
         if len(self.children) == 0:
             self.plot_end(env, color_alpha(color.hsv_to_rgb((hue, 1, 1)), 0.1))
 
+    def plot_other_path(self, env):
+        for i, child in enumerate(self.children):
+            col = "#00ffff10"
+            env.plot([self.position[0], child.position[0]], [self.position[1], child.position[1]], color = col)
+            child.plot_other_path(env)
+        if len(self.children) == 0:
+            self.plot_end(env, "#00ffff10")
+
 def arr_sum(*args):
     output = [0, 0]
     for arg in args:
@@ -419,7 +450,12 @@ for a in range(3):
         sim.initialize()
         sim.run_gens(int(answers[19]))
         sim.plot_path(axX[a][b])
+        # sim.plot_end(axX[a][b])
+        # sim.heat_end(axX[a][b])
+        # sim.heat_path(axX[a][b])
+        # sim.plot_other_path(plot)
         axX[a][b].axis([-int(answers[19]), int(answers[19]), -int(answers[19]), int(answers[19])])
+
 
 plot.show()
 # Models to recreate:
