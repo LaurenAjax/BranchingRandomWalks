@@ -99,8 +99,9 @@ def get_answers(arr):
 answers = get_answers(get_values())
 # an array of whether or not a model is needed and their weights, among other things
 child_count = int(answers[18])
-random_gen = int(answers[20])
 # the number of children each node will have
+random_gen = int(answers[20])
+# the generation at which the model finishes completely random modeling
 if child_count <= 0:
     child_count = 2
     # in case an invalid child count is given
@@ -108,17 +109,20 @@ if child_count <= 0:
 class Simulation:
     def __init__(self, **kwargs):
         self.pos = kwargs.get('pos', [0, 0])
+        # the position of the node
         self.par_var = math.radians(kwargs.get('par_var', 15))
-        # the variance the kid nodes have from their parent nodes
+        # the variance the kid nodes have from their parent node's angle
         self.sib_var = math.radians(kwargs.get('sib_var', 15))
-        # the variance the kid nodes have from their sibling nodes
+        # the variance the kid nodes have from their sibling node's angle
         self.clu_var = math.radians(kwargs.get('clu_var', 15))
         # the variance the kid nodes have from the guiding angle
         self.bias_var = math.radians(kwargs.get('bias_var', 15))
         # the variance the kid nodes have from the biased angle
         self.gens = None
+        # an double array of all the nodes, sorted by generation
         self.root = None
         self.generation = 0
+        # the current generation number
         self.included = [kwargs.get('random_walk', False),
                          kwargs.get('density', False),
                          kwargs.get('cloud', False),
@@ -143,10 +147,12 @@ class Simulation:
         
     def initialize(self):
         self.gens = [[]]
+        # an double array of all the nodes, sorted by generation
         self.clusters = []
         # self.run_params = [self.par_var, self.sib_var, self.clu_var, self.gens]
         self.root = Node(self.pos, None, 0, 0, self.par_var, self.sib_var, self.clu_var, self.bias_var, self.gens[0], self.weights, self.included)
         self.generation = 0
+        # the current generation number
         self.graph = None
         
     def run_gen(self):
@@ -183,33 +189,48 @@ class Simulation:
     def plot_end(self, env):
         for node in self.gens[-1]:
             node.plot_end(env, (0, 0, 0, 1))
+            # plots all the nodes in the final generation
     
     def plot_path(self, env):
         for node in self.gens[0]:
             node.plot_path(env, 0, 1)
+            # plots all the nodes and their path with rainbow colors
 
     def plot_other_path(self, env):
         for node in self.gens[0]:
             node.plot_other_path(env)
+            # plots all the nodes and their path with a single color
 
     def heat_end(self, env):
         x = []
+        # an array of x-coordinates
         y = []
+        # an array of y-coordinates
         for node in self.gens[-1]:
             x.append(node.position[0])
-            y.append(node.position[1])   
+            # appends all of the final generation's nodes x-coordinates
+            y.append(node.position[1])
+            # appends all of the final generation's nodes y-coordinates
         my_colormap = LinearSegmentedColormap.from_list("my colormap", ['#000000', '#ff0000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff'], N = 100)
+        # creates a colormap used in the histogram
         env.hist2d(x, y, bins = 75, range = [[-10, 10], [-10, 10]], cmap = my_colormap)
+        # constructs a histogram of all the final generation's points
 
     def heat_path(self, env):
         x = []
+        # an array of x-coordinates
         y = []
+        # an array of y-coordinates
         for thing in self.gens:
             for node in thing:
                 x.append(node.position[0])
+                # appends all of the nodes x-coordinates
                 y.append(node.position[1])   
+                # appends all of the final generation's nodes y-coordinates
         my_colormap = LinearSegmentedColormap.from_list("my colormap", ['#000000', '#ff0000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff'], N = 100)
+        # creates a colormap used in the histogram
         env.hist2d(x, y, bins = 75, range = [[-10, 10], [-10, 10]], cmap = my_colormap)
+        # constructs a histogram of all points
         
 
 class Node:
@@ -337,6 +358,7 @@ class Node:
             # the coordinates of the new node
         if self.generation < random_gen:
             delta = to_unit(arr_sum(scale_arr(rand_arr, 1)))
+            # only weighs the random model
         else:
             delta = to_unit(arr_sum(scale_arr(rand_arr, self.weights[0]),
                                     scale_arr(density_arr, self.weights[1]),
