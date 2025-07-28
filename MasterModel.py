@@ -194,7 +194,7 @@ class Simulation:
         for node in self.gens[-1]:
             x.append(node.position[0])
             y.append(node.position[1])   
-        my_colormap = LinearSegmentedColormap.from_list("my colormap", ['#70e00000', '#70e000ff'], N = 100)
+        my_colormap = LinearSegmentedColormap.from_list("my colormap", ['#000000', '#ff0000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff'], N = 100)
         env.hist2d(x, y, bins = 75, range = [[-10, 10], [-10, 10]], cmap = my_colormap)
 
     def heat_path(self, env):
@@ -204,7 +204,7 @@ class Simulation:
             for node in thing:
                 x.append(node.position[0])
                 y.append(node.position[1])   
-        my_colormap = LinearSegmentedColormap.from_list("my colormap", ['#38b00000', '#38b000ff'], N = 100)
+        my_colormap = LinearSegmentedColormap.from_list("my colormap", ['#000000', '#ff0000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff'], N = 100)
         env.hist2d(x, y, bins = 75, range = [[-10, 10], [-10, 10]], cmap = my_colormap)
         
 
