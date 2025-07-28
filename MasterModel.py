@@ -38,19 +38,20 @@ def get_values():
     """Asks the user a series of quesions that they must input an answer to
     and returns an array of their answers.  
     """
-    questions = ["How would you like to weigh the random walk model?", 
-                 "How would you like to weigh the density model?", 
-                 "How would you like to weigh the cloud model?", 
-                 "How would you like to weigh the cluster model?", 
-                 "How would you like to weigh the lattice model?", 
-                 "How would you like to weigh the biased model?", 
-                 "How would you like to weigh the parent influenced biased model?", 
-                 "How much would you like the kid nodes' angles to vary from their parents'?", 
-                 "How much would you like the sibling nodes' angles to vary from each other?", 
-                 "How much would you like the kid nodes' angles to vary from the guiding angle?", 
-                 "How much would you like the nodes' angles to varies from the biased angles?",
+    questions = ["How much would you like to weigh the random walk model?\nPlease enter a number greater than zero or enter zero if you do not wish to have this model impact the result.", 
+                 "How much would you like to weigh the density model?\nPlease enter a number greater than zero or enter zero if you do not wish to have this model impact the result.", 
+                 "How much would you like to weigh the cloud model?\nPlease enter a number greater than zero or enter zero if you do not wish to have this model impact the result.", 
+                 "How much would you like to weigh the cluster model\nPlease enter a number greater than zero ot enter zero if you do not wish to have this model impact the result.", 
+                 "How much would you like to weigh the lattice model?\nPlease enter a number greater than zero or enter zero if you do not wish to have this model impact the result.", 
+                 "How much would you like to weigh the bias model?\nPlease enter a number greater than zero or enter zero if you do not wish to have this model impact the result.", 
+                 "How much would you like to weigh the parent influenced bias model?\nPlease enter a number greater than zero.", 
+                 "For the parent influenced bias model only: \nWhen calculating a node's position, how many degrees would you like its angle to vary from its parent's angle?\nThe parent is the node that produced the node and its angle is the direction it moved on the graph.\nPlease enter a number in between 0 and 180.", 
+                 "When calculating a node's position, how many degrees would you like a node's angle to vary from another node that shares the same parent as it?\nThis applies to all models so if you do not want any variation, please enter zero.\nOtherwise, please enter a number no greater than 180.", 
+                 "For the cluster model only: \nWhen calculating a node's position, how many degrees would you like its angle to vary from the guiding angle?\nThis model picks a direction for all nodes within a calculated distance to travel in give or take the input.\nPlease enter a number in between 0 and 180.", 
+                 "For the bias model and the parent influenced bias model only: \nWhen calculating a node's position, how many degrees would you like it to varies from the direction it chooses?\nThese models pick one of three directions and have its nodes travel in that direction give or take the input.\nPlease enter a number in between 0 and 180.",
                  "How many kids would you like each node to have?", 
-                 "How many generations would you like each model to run for?"]
+                 "How many generations would you like this program to run for?",
+                 "This program allows for multiple random generations to be run prior to implementing its model.\nHow many generations would you like to be random?"]
     # an array of all questions that the user will answer with their input
     answers = []
     # an array of all the users inputed answers
@@ -65,6 +66,8 @@ def get_values():
         try:
             num_answer = float(answer)
             # checks the answer to see if it can become a float
+            if num_answer < 0:
+                raise ValueError()
             answers.append(num_answer)
             # appends it to the answers array if it can
         except (ValueError, TypeError):
@@ -96,6 +99,7 @@ def get_answers(arr):
 answers = get_answers(get_values())
 # an array of whether or not a model is needed and their weights, among other things
 child_count = int(answers[18])
+random_gen = int(answers[20])
 # the number of children each node will have
 if child_count <= 0:
     child_count = 2
@@ -237,13 +241,13 @@ class Node:
         lattice_arr = [0, 0]
         triangle_arr = [0, 0]
         bias_arr = [0, 0]
-        if self.included[0] or self.generation < 5:
+        if self.included[0] or self.generation < random_gen:
             rand_angle = random.random() * 2 * math.pi
             rand_arr = [math.cos(rand_angle), math.sin(rand_angle)]
-        if self.included[1] and self.generation >= 5:
+        if self.included[1] and self.generation >= random_gen:
             density_angle = random.random() * 2 * math.pi
             density_arr = to_unit(arr_sum(scale_arr([math.cos(self.angle), math.sin(self.angle)], density), [math.cos(density_angle), math.sin(density_angle)]))
-        if self.included[2] and self.generation >= 5:
+        if self.included[2] and self.generation >= random_gen:
             true_region = [[-math.pi, math.pi, 1]]
             regions = []
             cousins = self.get_child_cousins()
@@ -277,10 +281,10 @@ class Node:
             index = random.choices(range(len(true_region)), map(lambda x: x[2] * (x[1]- x[0]) / math.pi / 2, true_region))[0]
             cloud_angle = lerp(true_region[index][0], true_region[index][1], random.random())
             cloud_arr = [math.cos(cloud_angle), math.sin(cloud_angle)]
-        if self.included[3] and self.generation >= 5:
+        if self.included[3] and self.generation >= random_gen:
             cluster_angle = self.guiding + random.random() * 2 * self.cluster_variance - self.cluster_variance
             cluster_arr = [math.cos(cluster_angle), math.sin(cluster_angle)]
-        if self.included[4] and self.generation >= 5:
+        if self.included[4] and self.generation >= random_gen:
             lattice_angles = [0, 90, 180, 270]
             # an array of all possible lattice angles
             lattice_selected = random.randint(0, 3)
@@ -289,7 +293,7 @@ class Node:
             # the selected angle for the node to travel
             lattice_arr = [math.cos(lattice_angle), math.sin(lattice_angle)]
             # the coordinates of the new node
-        if self.included[5] and self.generation >= 5:
+        if self.included[5] and self.generation >= random_gen:
             rand_val = random.randint(1, 22)
             # a random value that determines which direction the node goes in
             if rand_val < 8:
@@ -306,7 +310,7 @@ class Node:
                 # a completely random angle
             triangle_arr = [math.cos(triangle_angle), math.sin(triangle_angle)]
             # the coordinates of the new node
-        if self.included[6] and self.generation >= 5:
+        if self.included[6] and self.generation >= random_gen:
             rand_val = random.randint(1, 22)
             # a random value that determines which direction the node goes in
             if self.generation == 0:
@@ -331,7 +335,7 @@ class Node:
                     # a completely random angle
             bias_arr = [math.cos(bias_angle), math.sin(bias_angle)]
             # the coordinates of the new node
-        if self.generation < 5:
+        if self.generation < random_gen:
             delta = to_unit(arr_sum(scale_arr(rand_arr, 1)))
         else:
             delta = to_unit(arr_sum(scale_arr(rand_arr, self.weights[0]),
@@ -341,14 +345,9 @@ class Node:
                                     scale_arr(lattice_arr, self.weights[4]), 
                                     scale_arr(triangle_arr, self.weights[5]), 
                                     scale_arr(bias_arr, self.weights[6])))
-        if self.generation < 5:
-            for _ in range(2):
-                bearing = math.atan2(delta[1], delta[0]) + random.random() * 2 * self.sibling_variance - self.sibling_variance
-                self.children.append(Node(arr_sum(self.position, [math.cos(bearing), math.sin(bearing)]), self, bearing, self.generation + 1, self.parent_variance, self.sibling_variance, self.cluster_variance, self.bias_variance, next, self.weights, self.included))
-        else:
-            for _ in range(child_count):
-                bearing = math.atan2(delta[1], delta[0]) + random.random() * 2 * self.sibling_variance - self.sibling_variance
-                self.children.append(Node(arr_sum(self.position, [math.cos(bearing), math.sin(bearing)]), self, bearing, self.generation + 1, self.parent_variance, self.sibling_variance, self.cluster_variance, self.bias_variance, next, self.weights, self.included))
+        for _ in range(child_count):
+            bearing = math.atan2(delta[1], delta[0]) + random.random() * 2 * self.sibling_variance - self.sibling_variance
+            self.children.append(Node(arr_sum(self.position, [math.cos(bearing), math.sin(bearing)]), self, bearing, self.generation + 1, self.parent_variance, self.sibling_variance, self.cluster_variance, self.bias_variance, next, self.weights, self.included))
             
     def get_child_cousins(self):
         cousins = [[]]
