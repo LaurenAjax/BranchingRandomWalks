@@ -51,7 +51,7 @@ def get_values():
                  "For the bias model and the parent influenced bias model only: \nWhen calculating a node's position, how many degrees would you like it to varies from the direction it chooses?\nThese models pick one of three directions and have its nodes travel in that direction give or take the input.\nPlease enter a number in between 0 and 180.",
                  "How many kids would you like each node to have?", 
                  "How many generations would you like this program to run for?",
-                 "How many of these generations you would you like to be random?"]
+                 "How many of these generations would you like to be random?"]
     # an array of all questions that the user will answer with their input
     answers = []
     # an array of all the users inputed answers
