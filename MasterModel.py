@@ -6,16 +6,17 @@ import functools as ft
 import igraph as ig
 from matplotlib.colors import LinearSegmentedColormap
 
-def zero_func(*args):
-    return 0
-
 def clamped(a, b, c):
+    """Return if the value a is clamped between values b and c."""
     return (a > b) & (a < c)
 
 def lerp(a, b, t):
+    """Return the linear interpolation of floats a and b with parameter t."""
     return a * (1 - t) + b * t
 
 def get_angles(source, target, sRad, tRad, probability, rangeArr):
+    """Identify the angles of which circles at source and target with radii sRad and tRad overlap.
+       Then, append these values as ranges to rangeArr. If necessary, split the range into two."""
     d = distBetween(source, target)
     l = (sRad * sRad - tRad * tRad + d * d) / (2 * d)
     h = math.sqrt(sRad*sRad-l*l)
@@ -32,6 +33,7 @@ def get_angles(source, target, sRad, tRad, probability, rangeArr):
         rangeArr.append([low, high, probability])
 
 def distBetween(a, b):
+    """Get the distance between two positions."""
     return get_scale(arr_dif(a, b))
 
 def get_values(): 
@@ -107,6 +109,7 @@ if child_count <= 0:
     # in case an invalid child count is given
 
 class Simulation:
+    """A class dedicated to running simulations of a branching random walk."""
     def __init__(self, **kwargs):
         self.pos = kwargs.get('pos', [0, 0])
         # the position of the node
@@ -139,67 +142,75 @@ class Simulation:
                         kwargs.get('triangle_weight', 1 if self.included[5] else 0), 
                         kwargs.get('bias_weight', 1 if self.included[6] else 0)]
         # an array of the weights of each model
-        self.independent_siblings = kwargs.get('independent_siblings', False)
-        self.run_params = None
         self.graph = None
+        # a graph of the nodes (to be constructed later)
         self.clusters = None
-        self.print_method = kwargs.get('print style', 0)
+        # a collection of the count of clusters (to be constructed later)
         
     def initialize(self):
+        """Reset all local parameters to those of an unrun simulation."""
         self.gens = [[]]
-        # an double array of all the nodes, sorted by generation
         self.clusters = []
-        # self.run_params = [self.par_var, self.sib_var, self.clu_var, self.gens]
         self.root = Node(self.pos, None, 0, 0, self.par_var, self.sib_var, self.clu_var, self.bias_var, self.gens[0], self.weights, self.included)
         self.generation = 0
-        # the current generation number
         self.graph = None
         
     def run_gen(self):
+        """Run a generation of the simulation."""
         next_gen = []
+        # create a new array for nodes of the upcoming generation.
         num = len(self.gens[self.generation])
+        # get the count of the previous generation's nodes.
         edges = []
+        # create an array to store the edges.
         for source_index in range(num):
             for target_index in range(source_index + 1, num):
                 if get_scale(arr_dif(self.gens[self.generation][source_index].position, self.gens[self.generation][target_index].position)) < f_t(self.generation):
                     edges.append([source_index, target_index])
+        # if the edges between two nodes is less than f(t), include it in the graph.
         g = ig.Graph(num, edges)
+        # create the graph.
         components = g.connected_components(mode='weak')
+        # get the components in the graph.
         self.clusters.append(len(components))
+        # record the number of components in the graph.
         angles = []
-        
+        # create an array to store the angles for each component.
         for _ in components:
             angles.append(random.random() * 2 * math.pi)
-        
+        # for each component, store a random angle.
         for index, component in enumerate(components):
             for node in component:
                 self.gens[self.generation][node].set_guiding_angle(angles[index])
-        
+        # for each node in each component, assign its guiding angle to that of its component.
         for node in self.gens[self.generation]:
             node.make_children(next_gen)
-        
+        # generate the upcoming generation.
         self.generation += 1
+        # increase the generation count.
         self.gens.append(next_gen)
+        # store the new generation.
         
     def run_gens(self, num):
-        for i in range(num):
+        """Run a series of generations"""
+        for _ in range(num):
             self.run_gen()
             print("Finished gen", self.generation)
             
     def plot_end(self, env):
         for node in self.gens[-1]:
             node.plot_end(env, (0, 0, 0, 1))
-            # plots all the nodes in the final generation
+        # plots all the nodes in the final generation
     
     def plot_path(self, env):
         for node in self.gens[0]:
             node.plot_path(env, 0, 1)
-            # plots all the nodes and their path with rainbow colors
+        # plots all the nodes and their path with rainbow colors
 
     def plot_other_path(self, env):
         for node in self.gens[0]:
             node.plot_other_path(env)
-            # plots all the nodes and their path with a single color
+        # plots all the nodes and their path with a single color
 
     def heat_end(self, env):
         x = []
@@ -234,27 +245,45 @@ class Simulation:
         
 
 class Node:
+    """A class representing a Node in the branching random walk simulation."""
     def __init__(self, pos, par, ang, gen, par_var, sib_var, clu_var, bias_var, population, w, i):
         self.position = pos
+        # the position of this node.
         self.parent = par
+        # the parent of this node.
         self.angle = ang
+        # the angle this node traveled from its parent.
         self.children = []
+        # an array of this node's children.
         self.generation = gen
+        # the generation this node is a part of.
         self.guiding = 0
+        # the guiding angle of this node.
         self.parent_variance = par_var
+        # simulation parameter.
         self.sibling_variance = sib_var
+        # simulation parameter.
         self.cluster_variance = clu_var
+        # simulation parameter.
         self.bias_variance = bias_var
+        # simulation parameter.
         self.population = population
+        # this node's cousins.
         self.population.append(self)
+        # add this node to the arraay of those of the same generation.
         self.weights = w
+        # simulation parameter.
         self.included = i
+        # simulation parameter.
         
     def set_guiding_angle(self, angle):
+        """Set the guiding angle of this node."""
         self.guiding = angle
     
     def make_children(self, next):
+        """Make children for this node according to simulation parameters and past nodes."""
         density = density_func(self, self.population)
+        # calculate the density about this node.
         rand_arr = [0, 0]
         density_arr = [0, 0]
         cloud_arr = [0, 0]
@@ -262,9 +291,12 @@ class Node:
         lattice_arr = [0, 0]
         triangle_arr = [0, 0]
         bias_arr = [0, 0]
+        # create arrays for each model that will have no effect on the final model unless they are assigned a value.
+        # note that the following models 
         if self.included[0] or self.generation < random_gen:
             rand_angle = random.random() * 2 * math.pi
             rand_arr = [math.cos(rand_angle), math.sin(rand_angle)]
+        # if this model includes the random walk model, assign meaningful value to its corresponding array
         if self.included[1] and self.generation >= random_gen:
             density_angle = random.random() * 2 * math.pi
             density_arr = to_unit(arr_sum(scale_arr([math.cos(self.angle), math.sin(self.angle)], density), [math.cos(density_angle), math.sin(density_angle)]))
