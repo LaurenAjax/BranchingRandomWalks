@@ -348,7 +348,7 @@ class Node:
                     bias_angle = random.random() * 2 * math.pi
                     # a completely random angle
             else:
-                if rand_val < 21:
+                if rand_val < 22:
                     bias_angle = self.angle + random.random() * 2 * self.parent_variance  - self.parent_variance
                     # an angle within 10 degrees of its parent's angle
                 else:
